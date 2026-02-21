@@ -1,7 +1,6 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const crypto = require('crypto');
 const {
   createStudent,
   getStudents,
@@ -14,9 +13,6 @@ const {
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
-
-const paymentOrders = new Map();
-const verifiedTransactions = new Map();
 
 function sendJson(res, statusCode, payload) {
   res.writeHead(statusCode, { 'Content-Type': 'application/json' });
@@ -124,64 +120,9 @@ function toExcelXml(rows) {
   return `${header}${headerRow}${dataRows}${footer}`;
 }
 
-function createDummyOrder({ amount = 19900, currency = 'INR' }) {
-  const orderId = `order_${crypto.randomUUID().replace(/-/g, '').slice(0, 16)}`;
-  paymentOrders.set(orderId, { amount, currency, createdAt: Date.now() });
-  return { orderId, amount, currency };
-}
-
-function verifyDummySignature({ orderId, paymentId, signature }) {
-  const existingOrder = paymentOrders.get(orderId);
-  if (!existingOrder) {
-    return { ok: false, error: 'Invalid order id' };
-  }
-
-  const expectedSignature = `dummy-sign-${orderId}-${paymentId}`;
-  if (signature !== expectedSignature) {
-    return { ok: false, error: 'Invalid payment signature' };
-  }
-
-  const transactionId = `TXN-${Date.now()}-${paymentId.slice(-6)}`;
-  verifiedTransactions.set(transactionId, {
-    orderId,
-    paymentId,
-    amount: existingOrder.amount,
-    currency: existingOrder.currency,
-    verifiedAt: Date.now(),
-  });
-
-  return { ok: true, transactionId, amount: existingOrder.amount, currency: existingOrder.currency };
-}
-
 async function handleApi(req, res, pathname, query) {
   if (pathname === '/api/health' && req.method === 'GET') {
     sendJson(res, 200, { ok: true });
-    return;
-  }
-
-  if (pathname === '/api/payment/create-order' && req.method === 'POST') {
-    const body = await parseJsonBody(req);
-    const amount = Number(body.amount || 19900);
-    const currency = body.currency || 'INR';
-    const order = createDummyOrder({ amount, currency });
-    sendJson(res, 200, { success: true, ...order });
-    return;
-  }
-
-  if (pathname === '/api/payment/verify' && req.method === 'POST') {
-    const body = await parseJsonBody(req);
-    const check = verifyDummySignature({
-      orderId: body.orderId,
-      paymentId: body.paymentId,
-      signature: body.signature,
-    });
-
-    if (!check.ok) {
-      sendJson(res, 400, { success: false, error: check.error });
-      return;
-    }
-
-    sendJson(res, 200, { success: true, transactionId: check.transactionId, amount: check.amount, currency: check.currency });
     return;
   }
 
@@ -196,18 +137,13 @@ async function handleApi(req, res, pathname, query) {
       schoolName,
       board,
       className,
+      paymentStatus,
+      paymentReference,
       document,
-      payment,
     } = body;
 
-    if (!payment || payment.status !== 'success' || !payment.transactionId) {
-      sendJson(res, 400, { error: 'Payment verification is mandatory before submission.' });
-      return;
-    }
-
-    const verified = verifiedTransactions.get(payment.transactionId);
-    if (!verified || verified.orderId !== payment.orderId || verified.paymentId !== payment.paymentId) {
-      sendJson(res, 400, { error: 'Payment transaction is not verified.' });
+    if (!paymentStatus || paymentStatus !== 'success') {
+      sendJson(res, 400, { error: 'Payment must be completed before submission.' });
       return;
     }
 
@@ -220,8 +156,8 @@ async function handleApi(req, res, pathname, query) {
       school_name: schoolName,
       board,
       class_name: className,
-      payment_status: 'success',
-      payment_reference: payment.transactionId,
+      payment_status: paymentStatus,
+      payment_reference: paymentReference,
       result_status: 'pending',
     });
 
@@ -240,7 +176,7 @@ async function handleApi(req, res, pathname, query) {
       created.document_url = uploaded.publicUrl;
     }
 
-    sendJson(res, 201, { student: created, transactionId: payment.transactionId });
+    sendJson(res, 201, { student: created });
     return;
   }
 

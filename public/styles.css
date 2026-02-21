@@ -34,14 +34,6 @@ body {
   padding: 0 18px;
   box-shadow: 0 3px 12px rgba(15, 23, 42, 0.3);
 }
-.brand-wrap { display:flex; align-items:center; gap:10px; }
-.logo-image {
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
-  background: #fff;
-  border: 1px solid rgba(255,255,255,.28);
-}
 .logo { font-weight: 700; letter-spacing: .4px; }
 .topbar-right { display: flex; align-items: center; gap: 12px; }
 .profile-pill { background: rgba(255,255,255,.15); padding: 8px 12px; border-radius: 20px; font-size: 13px; }
@@ -162,22 +154,3 @@ tbody tr:nth-child(even) { background: #f8faff; }
   .main-content { padding: 14px; }
   .form-grid { grid-template-columns: 1fr; }
 }
-
-
-.portal-footer {
-  margin-top: 18px;
-  border-radius: 8px;
-  padding: 12px 14px;
-  background: #fff;
-  border: 1px solid #edf1f8;
-  box-shadow: 0 6px 16px rgba(15, 23, 42, .05);
-}
-.footer-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #6b7280;
-  font-size: 12px;
-}
-.footer-brand p { margin: 0; }
-.parent-brand { color: #d9c27a; font-weight: 700; }

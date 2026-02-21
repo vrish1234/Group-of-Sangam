@@ -3,22 +3,6 @@ import './portal.css';
 
 type Step = 1 | 2 | 3;
 
-type PaymentState = {
-  status: 'pending' | 'success';
-  orderId: string;
-  paymentId: string;
-  signature: string;
-  transactionId: string;
-};
-
-const defaultPayment: PaymentState = {
-  status: 'pending',
-  orderId: '',
-  paymentId: '',
-  signature: '',
-  transactionId: '',
-};
-
 export default function App() {
   const [step, setStep] = useState<Step>(1);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -26,11 +10,10 @@ export default function App() {
     fullName: '', phone: '', email: '', dateOfBirth: '', address: '', schoolName: '', board: '', className: '',
   });
   const [file, setFile] = useState<File | null>(null);
-  const [payment, setPayment] = useState<PaymentState>(defaultPayment);
+  const [paymentStatus, setPaymentStatus] = useState<'pending' | 'success'>('pending');
+  const [paymentReference, setPaymentReference] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [processingPayment, setProcessingPayment] = useState(false);
   const [message, setMessage] = useState('');
-  const [submittedStudentId, setSubmittedStudentId] = useState('');
 
   const canGoNext = useMemo(() => {
     if (step === 1) return !!(form.fullName && form.phone && form.email && form.dateOfBirth && form.address);
@@ -51,63 +34,27 @@ export default function App() {
     });
   }
 
-  async function startDummyPayment() {
-    setProcessingPayment(true);
-    setMessage('Creating payment order...');
-
-    const orderRes = await fetch('/api/payment/create-order', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount: 19900, currency: 'INR' }),
-    });
-    const orderData = await orderRes.json();
-
-    if (!orderRes.ok) {
-      setMessage(orderData.error || 'Unable to create payment order.');
-      setProcessingPayment(false);
-      return;
-    }
-
-    await new Promise((r) => setTimeout(r, 900));
-    const paymentId = `pay_${Date.now()}`;
-    const signature = `dummy-sign-${orderData.orderId}-${paymentId}`;
-
-    setMessage('Verifying payment signature...');
-    const verifyRes = await fetch('/api/payment/verify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ orderId: orderData.orderId, paymentId, signature }),
-    });
-    const verifyData = await verifyRes.json();
-
-    if (!verifyRes.ok || !verifyData.success) {
-      setMessage(verifyData.error || 'Payment verification failed.');
-      setProcessingPayment(false);
-      return;
-    }
-
-    setPayment({
-      status: 'success',
-      orderId: orderData.orderId,
-      paymentId,
-      signature,
-      transactionId: verifyData.transactionId,
-    });
-    setMessage(`Payment successful. Transaction ID: ${verifyData.transactionId}`);
-    setProcessingPayment(false);
+  async function mockPay() {
+    setMessage('Processing mock payment...');
+    await new Promise((r) => setTimeout(r, 1000));
+    const ref = `MOCK-${Date.now()}`;
+    setPaymentStatus('success');
+    setPaymentReference(ref);
+    setMessage(`Payment successful: ${ref}`);
   }
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (payment.status !== 'success') {
-      setMessage('Submission is locked until payment verification is successful.');
+    if (paymentStatus !== 'success') {
+      setMessage('Submission is locked until payment is successful.');
       return;
     }
 
     setSubmitting(true);
     const payload = {
       ...form,
-      payment,
+      paymentStatus,
+      paymentReference,
       document: file ? { fileName: file.name, mimeType: file.type, base64: await toBase64(file) } : null,
     };
 
@@ -124,57 +71,11 @@ export default function App() {
       return;
     }
 
-    setSubmittedStudentId(String(data.student.id));
-    setMessage('');
+    setMessage(`Application submitted successfully. Student ID: ${data.student.id}`);
     setSubmitting(false);
-  }
-
-  function resetForm() {
     setStep(1);
-    setForm({
-      fullName: '', phone: '', email: '', dateOfBirth: '', address: '', schoolName: '', board: '', className: '',
-    });
-    setFile(null);
-    setPayment(defaultPayment);
-    setSubmittedStudentId('');
-    setMessage('');
-  }
-
-  if (submittedStudentId) {
-    return (
-      <>
-        <header className="ems-topbar">
-          <div className="ems-brand">
-            <img className="ems-logo-image" src="/group-of-sangam-logo.svg" alt="Group of Sangam logo" />
-            <div className="ems-brand-block">
-              <span className="ems-brand-title">Gyan Setu • SBTE EMS</span>
-              <span className="ems-brand-sub">Initiative by <span className="ems-parent-brand">Group of Sangam</span></span>
-            </div>
-          </div>
-          <div className="ems-user">Application Complete</div>
-        </header>
-        <main className="ems-main" style={{ maxWidth: 920, margin: '0 auto' }}>
-          <section className="ems-card success-screen">
-            <h1 className="ems-title">Application Submitted Successfully!</h1>
-            <p className="ems-subtitle">Your scholarship application has been securely saved to cloud records.</p>
-            <div className="txn-block">
-              <p><strong>Student ID:</strong> {submittedStudentId}</p>
-              <p><strong>Mock Transaction ID:</strong> {payment.transactionId}</p>
-              <p><strong>Payment Status:</strong> Success</p>
-            </div>
-            <div className="ems-actions">
-              <button className="ems-btn" type="button" onClick={resetForm}>Submit Another Application</button>
-            </div>
-          </section>
-          <footer className="ems-footer">
-            <div className="ems-footer-brand">
-              <img className="ems-logo-image" src="/group-of-sangam-logo.svg" alt="Group of Sangam logo" />
-              <p>© 2026 <span className="ems-parent-brand">Group of Sangam</span> | Head Office: Aurangabad, Bihar. All scholarship branches are managed by Sangam Group.</p>
-            </div>
-          </footer>
-        </main>
-      </>
-    );
+    setPaymentStatus('pending');
+    setPaymentReference('');
   }
 
   return (
@@ -182,10 +83,12 @@ export default function App() {
       <header className="ems-topbar">
         <div className="ems-brand">
           <button className="ems-hamburger" onClick={() => setSidebarOpen((v) => !v)}>☰</button>
-          <img className="ems-logo-image" src="/group-of-sangam-logo.svg" alt="Group of Sangam logo" />
+          <div className="ems-logo-mark" aria-hidden="true" />
           <div className="ems-brand-block">
             <span className="ems-brand-title">Gyan Setu • SBTE EMS</span>
-            <span className="ems-brand-sub">Initiative by <span className="ems-parent-brand">Group of Sangam</span></span>
+            <span className="ems-brand-sub">
+              Initiative by <span className="ems-parent-brand">Group of Sangam</span>
+            </span>
           </div>
         </div>
         <div className="ems-user">User Profile ▾ Logout</div>
@@ -203,7 +106,7 @@ export default function App() {
         <main className="ems-main">
           <section className="ems-card">
             <h2 className="ems-title">Scholarship Application</h2>
-            <p className="ems-subtitle">3-step workflow with strict payment verification before cloud save.</p>
+            <p className="ems-subtitle">3-step workflow with payment-gated final submit and cloud persistence.</p>
 
             <div className="ems-steps">
               <div className={`ems-step-chip ${step === 1 ? 'active' : ''}`}>Step 1: Personal</div>
@@ -236,16 +139,16 @@ export default function App() {
                     <div className="ems-field"><label>Document Upload</label><input type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} /></div>
                   </div>
                   <div className="ems-actions">
-                    <button className={`ems-btn ${processingPayment ? 'loading' : ''}`} type="button" onClick={startDummyPayment} disabled={processingPayment || payment.status === 'success'}>Pay ₹199 (Dummy)</button>
+                    <button className="ems-btn" type="button" onClick={mockPay} disabled={paymentStatus === 'success'}>Pay ₹199 (Mock)</button>
                   </div>
-                  <p className="ems-subtitle" style={{ marginTop: 10 }}>Payment: {payment.status === 'success' ? `Success (${payment.transactionId})` : 'Pending'}</p>
+                  <p className="ems-subtitle" style={{ marginTop: 10 }}>Payment: {paymentStatus === 'success' ? paymentReference : 'Pending'}</p>
                 </div>
               )}
 
               <div className="ems-actions">
                 <button className="ems-btn" type="button" disabled={step === 1} onClick={() => setStep((s) => Math.max(1, s - 1) as Step)}>Previous</button>
                 <button className="ems-btn" type="button" disabled={step === 3} onClick={() => canGoNext && setStep((s) => Math.min(3, s + 1) as Step)}>Next</button>
-                <button className={`ems-btn ${submitting ? 'loading' : ''}`} type="submit" disabled={step !== 3 || payment.status !== 'success' || submitting}>Submit</button>
+                <button className={`ems-btn ${submitting ? 'loading' : ''}`} type="submit" disabled={step !== 3 || paymentStatus !== 'success' || submitting}>Submit</button>
               </div>
             </form>
 
@@ -253,10 +156,8 @@ export default function App() {
           </section>
 
           <footer className="ems-footer">
-            <div className="ems-footer-brand">
-              <img className="ems-logo-image" src="/group-of-sangam-logo.svg" alt="Group of Sangam logo" />
-              <p>© 2026 <span className="ems-parent-brand">Group of Sangam</span> | Head Office: Aurangabad, Bihar. All scholarship branches are managed by Sangam Group.</p>
-            </div>
+            © 2026 <span className="ems-parent-brand">Group of Sangam</span> | Head Office: Aurangabad, Bihar.
+            {' '}All scholarship branches are managed by Sangam Group.
           </footer>
         </main>
       </div>

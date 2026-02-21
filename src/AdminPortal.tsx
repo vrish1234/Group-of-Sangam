@@ -79,7 +79,7 @@ export default function AdminPortal() {
       <header className="ems-topbar">
         <div className="ems-brand">
           <button className="ems-hamburger" onClick={() => setSidebarOpen((v) => !v)}>☰</button>
-          <img className="ems-logo-image" src="/group-of-sangam-logo.svg" alt="Group of Sangam logo" />
+          <div className="ems-logo-mark" aria-hidden="true" />
           <div className="ems-brand-block">
             <span className="ems-brand-title">Gyan Setu • SBTE EMS Administration</span>
             <span className="ems-brand-sub">
@@ -149,10 +149,8 @@ export default function AdminPortal() {
           <p className="ems-subtitle">{status}</p>
 
           <footer className="ems-footer">
-            <div className="ems-footer-brand">
-              <img className="ems-logo-image" src="/group-of-sangam-logo.svg" alt="Group of Sangam logo" />
-              <p>© 2026 <span className="ems-parent-brand">Group of Sangam</span> | Head Office: Aurangabad, Bihar. All scholarship branches are managed by Sangam Group.</p>
-            </div>
+            © 2026 <span className="ems-parent-brand">Group of Sangam</span> | Head Office: Aurangabad, Bihar.
+            {' '}All scholarship branches are managed by Sangam Group.
           </footer>
         </main>
       </div>
