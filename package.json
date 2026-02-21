@@ -1,0 +1,12 @@
+{
+  "name": "gyan-setu-portal",
+  "version": "1.0.0",
+  "description": "Complete system build for Gyan Setu portal",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node src/server.js",
+    "check": "node --check src/server.js && node --check src/services/supabaseClient.js"
+  }
+}
