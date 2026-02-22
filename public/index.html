@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gyan Setu - Group of Sangam</title>
+  <title>Gyan Setu - SBTE EMS Portal</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-  <header class="site-header">
-    <div class="brand"><div class="brand-logo">LOGO</div> Gyan Setu: Organized by Group of Sangam</div>
-    <div class="actions" id="publicActions" style="margin:0;">
-      <button id="openAuthBtn">Login / Register</button>
+  <header class="topbar">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button class="hamburger" id="hamburger">☰</button>
+      <div class="logo" style="display:flex;align-items:center;gap:8px;"><img src="./group-of-sangam-logo.svg" alt="Group of Sangam Logo" style="height:28px;width:28px;object-fit:contain;" /> <span>Gyan Setu • SBTE EMS</span></div>
     </div>
     <div class="actions" id="authActions" style="margin:0;display:none;">
       <span class="notice" id="userPill" style="color:#fff"></span>
@@ -86,10 +86,8 @@
           </section>
         </div>
       </div>
-    </section>
-  </main>
-
-  <footer class="site-footer">Gyan Setu: Organized by Group of Sangam</footer>
-  <script src="./app.js"></script>
+    </main>
+  </div>
+  <script src="/student.js"></script> 
 </body>
 </html>
