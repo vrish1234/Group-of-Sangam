@@ -14,10 +14,30 @@ const {
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
+const DB_FILE = path.join(__dirname, '..', 'data', 'app-db.json');
+
+function ensureLocalDb() {
+  const dir = path.dirname(DB_FILE);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  if (!fs.existsSync(DB_FILE)) {
+    const seed = {
+      users: [{ id: '1', name: 'Super Admin', email: 'admin@sangam.local', password: 'admin123', role: 'admin', course: 'Management' }],
+      liveState: { youtubeUrl: '', notification: 'Welcome to Gyan Setu. Stay tuned for scholarship updates.', chat: [] },
+      scholarshipRequests: [],
+    };
+    fs.writeFileSync(DB_FILE, JSON.stringify(seed, null, 2));
+  }
+}
 
 const users = [{ id: '1', name: 'Super Admin', email: 'admin@sangam.local', password: 'admin123', role: 'admin', course: 'Management' }];
 const sessions = new Map();
 const liveState = { youtubeUrl: '', notification: 'Welcome to Gyan Setu. Stay tuned for scholarship updates.', chat: [] };
+const sseClients = new Set();
+
+const sendJson = (res, code, payload) => { res.writeHead(code, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(payload)); };
+const redirect = (res, location) => { res.writeHead(302, { Location: location }); res.end(); };
+
+const sessions = new Map();
 const sseClients = new Set();
 
 const sendJson = (res, code, payload) => { res.writeHead(code, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(payload)); };
