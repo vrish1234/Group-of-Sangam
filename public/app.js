@@ -1,234 +1,176 @@
-// Global login state requested
-let isLoggedIn = false;
-
 const state = {
   user: null,
   isRegister: false,
+  step1Valid: false,
   currentMainView: 'landing',
-  currentRoute: '/landing',
-  recentApplications: [],
-  currentStep: 1,
-  paymentPaid: false,
 };
 
-const $ = (id) => document.getElementById(id);
+const viewLanding = document.getElementById('viewLanding');
+const viewAuth = document.getElementById('viewAuth');
+const viewDashboard = document.getElementById('viewDashboard');
+const publicActions = document.getElementById('publicActions');
+const authActions = document.getElementById('authActions');
+const userPill = document.getElementById('userPill');
+const dashboardGreeting = document.getElementById('dashboardGreeting');
 
-function setDisplay(id, show, type = 'block') { $(id).style.display = show ? type : 'none'; }
+const authTitle = document.getElementById('authTitle');
+const nameField = document.getElementById('nameField');
+const authName = document.getElementById('authName');
+const authEmail = document.getElementById('authEmail');
+const authPassword = document.getElementById('authPassword');
+const authMsg = document.getElementById('authMsg');
 
-function syncLoginState() {
-  isLoggedIn = Boolean(state.user);
-  setDisplay('publicActions', !isLoggedIn, 'flex');
-  setDisplay('authActions', isLoggedIn, 'flex');
-  if (isLoggedIn) {
-    $('userPill').textContent = `User: ${state.user.name}`;
-    $('dashboardGreeting').textContent = `Welcome, ${state.user.name}!`;
-  }
-}
+const panelDashboard = document.getElementById('panelDashboard');
+const panelApplications = document.getElementById('panelApplications');
+const panelResults = document.getElementById('panelResults');
+
+const step2 = document.getElementById('step2');
+const step1Msg = document.getElementById('step1Msg');
+const step2Msg = document.getElementById('step2Msg');
 
 function renderMainView() {
-  setDisplay('viewLanding', state.currentMainView === 'landing');
-  setDisplay('viewAuth', state.currentMainView === 'auth');
-  setDisplay('viewDashboard', state.currentMainView === 'dashboard');
-  syncLoginState();
+  viewLanding.style.display = state.currentMainView === 'landing' ? 'block' : 'none';
+  viewAuth.style.display = state.currentMainView === 'auth' ? 'block' : 'none';
+  viewDashboard.style.display = state.currentMainView === 'dashboard' ? 'block' : 'none';
+
+  const isLoggedIn = Boolean(state.user);
+  publicActions.style.display = isLoggedIn ? 'none' : 'flex';
+  authActions.style.display = isLoggedIn ? 'flex' : 'none';
+
+  if (state.user) {
+    userPill.textContent = `User: ${state.user.name}`;
+    dashboardGreeting.textContent = `Welcome, ${state.user.name}!`;
+  }
 }
 
 function renderAuthMode() {
-  $('authTitle').textContent = state.isRegister ? 'Register' : 'Login';
-  setDisplay('nameField', state.isRegister);
-  $('authSubmitBtn').textContent = state.isRegister ? 'Register' : 'Login';
-  $('switchAuthModeBtn').textContent = state.isRegister ? 'Already have account? Login' : 'Create account';
+  authTitle.textContent = state.isRegister ? 'Register' : 'Login';
+  nameField.style.display = state.isRegister ? 'block' : 'none';
+  document.getElementById('authSubmitBtn').textContent = state.isRegister ? 'Register' : 'Login';
+  document.getElementById('switchAuthModeBtn').textContent = state.isRegister ? 'Already have account? Login' : 'Create account';
 }
 
-function renderRecentApplications() {
-  $('recentApplicationsList').innerHTML = state.recentApplications.length
-    ? state.recentApplications.map((item) => `<li>${item}</li>`).join('')
-    : '<li>No applications submitted yet.</li>';
+function setDashboardPanel(panel) {
+  const map = { dashboard: panelDashboard, applications: panelApplications, results: panelResults };
+  Object.values(map).forEach((el) => { el.style.display = 'none'; });
+  map[panel].style.display = 'block';
+
+  document.querySelectorAll('[data-nav]').forEach((a) => a.classList.remove('active'));
+  document.querySelector(`[data-nav="${panel}"]`)?.classList.add('active');
 }
 
-function applyRouteGuard(route) {
-  if (!isLoggedIn && ['/dashboard', '/apply', '/results'].includes(route)) {
-    state.currentMainView = 'auth';
-    state.currentRoute = '/login';
-    history.replaceState({}, '', '/login');
-    return false;
-  }
-  return true;
+function unlockStep2() {
+  step2.style.display = 'block';
+  step2.style.opacity = '1';
+  step2.style.pointerEvents = 'auto';
 }
 
-function setPanel(route) {
-  const panels = { '/dashboard': 'panelDashboard', '/apply': 'panelApplications', '/results': 'panelResults' };
-  Object.values(panels).forEach((id) => setDisplay(id, false));
-  if (panels[route]) setDisplay(panels[route], true);
-  document.querySelectorAll('[data-route]').forEach((a) => a.classList.remove('active'));
-  document.querySelector(`[data-route="${route}"]`)?.classList.add('active');
-}
-
-function navigate(route, replace = false) {
-  if (!applyRouteGuard(route)) return renderMainView();
-
-  if (route === '/landing' || route === '/') state.currentMainView = 'landing';
-  else if (route === '/login') state.currentMainView = 'auth';
-  else {
-    state.currentMainView = 'dashboard';
-    setPanel(route);
-  }
-
-  state.currentRoute = route;
-  if (replace) history.replaceState({}, '', route);
-  else history.pushState({}, '', route);
+document.getElementById('openAuthBtn').addEventListener('click', () => {
+  state.currentMainView = 'auth';
   renderMainView();
-}
+});
 
-function getStepFields(step) {
-  if (step === 1) return ['fullName', 'phone'];
-  if (step === 2) return ['schoolName', 'className'];
-  return [];
-}
+document.getElementById('goAuthBtn').addEventListener('click', () => {
+  state.currentMainView = 'auth';
+  renderMainView();
+});
 
-function validateStep(step) {
-  return getStepFields(step).every((id) => $(id).value.trim());
-}
+document.getElementById('switchAuthModeBtn').addEventListener('click', () => {
+  state.isRegister = !state.isRegister;
+  renderAuthMode();
+  authMsg.textContent = '';
+});
 
-function renderStep() {
-  [1, 2, 3].forEach((s) => setDisplay(`step${s}`, s === state.currentStep));
-  setDisplay('prevBtn', state.currentStep > 1, 'inline-block');
-  setDisplay('nextBtn', state.currentStep < 3, 'inline-block');
-  setDisplay('submitFormBtn', state.currentStep === 3, 'inline-block');
-
-  if (state.currentStep === 3) {
-    $('submitFormBtn').disabled = !state.paymentPaid;
-  }
-}
-
-function resetFormAndFlow() {
-  ['fullName', 'phone', 'schoolName', 'className'].forEach((id) => ($(id).value = ''));
-  state.currentStep = 1;
-  state.paymentPaid = false;
-  $('paymentStatus').textContent = 'Payment: Pending';
-  setDisplay('paySpinner', false);
-  $('stepMsg').textContent = '';
-  $('submitFormBtn').disabled = true;
-  renderStep();
-}
-
-async function mockLoginOrRegister() {
+document.getElementById('authSubmitBtn').addEventListener('click', async () => {
   const endpoint = state.isRegister ? '/api/auth/register' : '/api/auth/login';
   const payload = state.isRegister
-    ? { name: $('authName').value.trim(), email: $('authEmail').value.trim(), password: $('authPassword').value, role: 'user', course: 'Scholarship Program' }
-    : { email: $('authEmail').value.trim(), password: $('authPassword').value, expectedRole: 'user' };
+    ? { name: authName.value.trim(), email: authEmail.value.trim(), password: authPassword.value, role: 'user', course: 'Scholarship Program' }
+    : { email: authEmail.value.trim(), password: authPassword.value, expectedRole: 'user' };
 
-  const response = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+  const response = await fetch(endpoint, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+  });
   const data = await response.json();
-  if (!response.ok) return ($('authMsg').textContent = data.error || 'Authentication failed');
+
+  if (!response.ok) {
+    authMsg.textContent = data.error || 'Authentication failed';
+    return;
+  }
 
   if (state.isRegister) {
-    $('authMsg').textContent = 'Registration successful. Please login now.';
+    authMsg.textContent = 'Registration successful. Please login now.';
     state.isRegister = false;
     renderAuthMode();
     return;
   }
 
   state.user = data.user;
-  isLoggedIn = true;
-  navigate('/dashboard', true);
-  renderRecentApplications();
-}
-
-// events
-$('openAuthBtn').addEventListener('click', () => navigate('/login'));
-$('goAuthBtn').addEventListener('click', () => navigate('/login'));
-$('switchAuthModeBtn').addEventListener('click', () => {
-  state.isRegister = !state.isRegister;
-  $('authMsg').textContent = '';
-  renderAuthMode();
+  state.currentMainView = 'dashboard';
+  renderMainView();
+  setDashboardPanel('dashboard');
 });
-$('authSubmitBtn').addEventListener('click', mockLoginOrRegister);
 
-$('logoutBtn').addEventListener('click', async () => {
+document.getElementById('logoutBtn').addEventListener('click', async () => {
   await fetch('/api/auth/logout', { method: 'POST' });
   state.user = null;
-  isLoggedIn = false;
-  state.recentApplications = [];
-  resetFormAndFlow();
-  navigate('/login', true);
+  state.currentMainView = 'landing';
+  renderMainView();
 });
 
-document.querySelectorAll('[data-route]').forEach((a) => {
-  a.addEventListener('click', (e) => {
-    e.preventDefault();
-    navigate(a.dataset.route);
+document.querySelectorAll('[data-nav]').forEach((a) => {
+  a.addEventListener('click', (event) => {
+    event.preventDefault();
+    if (!state.user) {
+      state.currentMainView = 'auth';
+      renderMainView();
+      return;
+    }
+    setDashboardPanel(a.dataset.nav);
   });
 });
 
-$('sidebarToggleBtn').addEventListener('click', () => $('appSidebar').classList.toggle('collapsed'));
-window.addEventListener('resize', () => {
-  if (window.innerWidth > 900) $('appSidebar').classList.remove('collapsed');
-});
-window.addEventListener('popstate', () => navigate(window.location.pathname, true));
-
-$('nextBtn').addEventListener('click', () => {
-  if (!validateStep(state.currentStep)) {
-    $('stepMsg').textContent = `Please fill all required fields in Step ${state.currentStep}.`;
+document.getElementById('toStep2Btn').addEventListener('click', () => {
+  const fullName = document.getElementById('fullName').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  if (!fullName || !phone) {
+    state.step1Valid = false;
+    step1Msg.textContent = 'Step 1 complete kiye bina Step 2 open nahi hoga.';
     return;
   }
-  $('stepMsg').textContent = '';
-  state.currentStep += 1;
-  renderStep();
+  state.step1Valid = true;
+  step1Msg.textContent = 'Step 1 validated. Step 2 unlocked.';
+  unlockStep2();
 });
 
-$('prevBtn').addEventListener('click', () => {
-  if (state.currentStep > 1) state.currentStep -= 1;
-  renderStep();
-});
-
-$('payBtn').addEventListener('click', () => {
-  setDisplay('paySpinner', true, 'inline-block');
-  $('paymentStatus').textContent = 'Payment: Processing...';
-  $('payBtn').disabled = true;
-  setTimeout(() => {
-    setDisplay('paySpinner', false);
-    $('paymentStatus').textContent = 'Payment: Paid';
-    state.paymentPaid = true;
-    $('submitFormBtn').disabled = false;
-    $('payBtn').disabled = false;
-  }, 2000);
-});
-
-$('submitFormBtn').addEventListener('click', async () => {
-  if (!state.paymentPaid) return;
-  const formData = {
-    fullName: $('fullName').value,
-    phone: $('phone').value,
-    schoolName: $('schoolName').value,
-    className: $('className').value,
-    paymentStatus: 'success',
-  };
+document.getElementById('submitFormBtn').addEventListener('click', async () => {
+  if (!state.user) {
+    state.currentMainView = 'auth';
+    renderMainView();
+    return;
+  }
+  if (!state.step1Valid) {
+    step2Msg.textContent = 'Please complete Step 1 first.';
+    return;
+  }
 
   const payload = {
-    fullName: formData.fullName,
-    phone: formData.phone,
+    fullName: document.getElementById('fullName').value,
+    phone: document.getElementById('phone').value,
     email: state.user.email,
     dateOfBirth: '2000-01-01',
     address: 'N/A',
-    schoolName: formData.schoolName,
+    schoolName: document.getElementById('schoolName').value,
     board: 'State Board',
-    className: formData.className,
+    className: document.getElementById('className').value,
     paymentStatus: 'success',
     paymentReference: `MOCK-${Date.now()}`,
   };
 
-  const response = await fetch('/api/student/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+  const response = await fetch('/api/student/register', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+  });
   const data = await response.json();
-  if (!response.ok) {
-    $('stepMsg').textContent = data.error || 'Submission failed';
-    return;
-  }
-
-  state.recentApplications.unshift(`Application ID ${data.student.id} submitted`);
-  renderRecentApplications();
-  alert(`Success! Submitted JSON:\n${JSON.stringify(formData, null, 2)}`);
-  resetFormAndFlow();
-  navigate('/dashboard', true);
+  step2Msg.textContent = response.ok ? `Application submitted. ID: ${data.student.id}` : (data.error || 'Submission failed');
 });
 
 (async function init() {
@@ -236,15 +178,9 @@ $('submitFormBtn').addEventListener('click', async () => {
   if (response.ok) {
     const data = await response.json();
     state.user = data.user;
-    isLoggedIn = true;
+    state.currentMainView = 'dashboard';
+    setDashboardPanel('dashboard');
   }
-
   renderAuthMode();
-  renderRecentApplications();
-  resetFormAndFlow();
-
-  const requested = window.location.pathname;
-  if (!requested || requested === '/index.html') navigate('/landing', true);
-  else navigate(requested, true);
-  if (isLoggedIn && state.currentRoute === '/login') navigate('/dashboard', true);
+  renderMainView();
 })();
