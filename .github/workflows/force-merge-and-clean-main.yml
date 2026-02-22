@@ -1,0 +1,58 @@
+name: Force merge branding branch into main and remove README
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_branch:
+        description: "Branch to force-sync into main"
+        required: true
+        default: "codex/complete-system-build-for-gyan-setu-portal-b6nu47"
+
+permissions:
+  contents: write
+
+jobs:
+  force_sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git bot identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch source and target branches
+        run: |
+          git fetch origin main
+          git fetch origin "${{ github.event.inputs.source_branch }}"
+
+      - name: Force-sync main with source branch
+        run: |
+          git checkout -B main "origin/main"
+          git reset --hard "origin/${{ github.event.inputs.source_branch }}"
+
+      - name: Remove root README.md if present
+        run: |
+          if [ -f README.md ]; then
+            git rm -f README.md
+          else
+            echo "README.md already absent"
+          fi
+
+      - name: Commit cleanup if needed
+        run: |
+          if ! git diff --cached --quiet || ! git diff --quiet; then
+            git add -A
+            git commit -m "Force-sync main and remove root README.md"
+          else
+            echo "No new changes to commit"
+          fi
+
+      - name: Push main (force-with-lease)
+        run: |
+          git push origin main --force-with-lease
