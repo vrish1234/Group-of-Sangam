@@ -73,6 +73,12 @@ const sseClients = new Set();
 const sendJson = (res, code, payload) => { res.writeHead(code, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(payload)); };
 const redirect = (res, location) => { res.writeHead(302, { Location: location }); res.end(); };
 
+const sessions = new Map();
+const sseClients = new Set();
+
+const sendJson = (res, code, payload) => { res.writeHead(code, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(payload)); };
+const redirect = (res, location) => { res.writeHead(302, { Location: location }); res.end(); };
+
 function getContentType(filePath) {
   if (filePath.endsWith('.html')) return 'text/html; charset=utf-8';
   if (filePath.endsWith('.css')) return 'text/css; charset=utf-8';
