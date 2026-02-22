@@ -1,0 +1,19 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "name": "Super Admin",
+      "email": "admin@sangam.local",
+      "password": "admin123",
+      "role": "admin",
+      "course": "Management"
+    }
+  ],
+  "liveState": {
+    "youtubeUrl": "",
+    "notification": "Welcome to Gyan Setu. Stay tuned for scholarship updates.",
+    "chat": [],
+    "scholarshipOpen": false
+  },
+  "scholarshipRequests": []
+}
