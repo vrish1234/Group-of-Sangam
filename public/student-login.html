@@ -3,29 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gyan Setu Home</title>
+  <title>Student Login - Gyan Setu</title>
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
   <header class="site-header">
     <div class="brand"><div class="brand-logo">LOGO</div> Gyan Setu: Organized by Group of Sangam</div>
-    <div class="actions" style="margin:0;">
-      <button onclick="window.location.href='/student-login'">Student Login</button>
-      <button class="secondary" onclick="window.location.href='/management-login'">Management Login</button>
-    </div>
   </header>
-
   <main class="main-content container">
     <section class="card">
-      <h1>Welcome to Gyan Setu</h1>
+      <h1>Student Portal Login</h1>
       <p class="notice">Providing scholarships and free education for a better future.</p>
-    </section>
-    <section class="card">
-      <h2>Notifications</h2>
-      <p>Scholarship applications are open now. Live classes run daily at 6 PM onwards.</p>
+      <form id="studentLoginForm">
+        <div class="field"><label>Email</label><input id="email" type="email" required /></div>
+        <div class="field"><label>Password</label><input id="password" type="password" required /></div>
+        <div class="actions"><button type="submit">Login</button></div>
+      </form>
+      <p class="notice">New user? Register from home page or ask committee support.</p>
     </section>
   </main>
-
   <footer class="site-footer">Gyan Setu: Organized by Group of Sangam</footer>
+  <script src="/student-login.js"></script>
 </body>
 </html>

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Management Dashboard - Gyan Setu</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand"><div class="brand-logo">LOGO</div> Gyan Setu: Organized by Group of Sangam</div>
+    <button id="adminLogoutBtn" class="danger">Logout</button>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <a class="active" href="#">Dashboard</a>
+      <a href="#notifications">Post Notifications</a>
+      <a href="#records">Student Records</a>
+    </aside>
+    <main class="main-content">
+      <section class="card" id="notifications">
+        <h2>Post New Notification</h2>
+        <div class="field"><label>Notification Message</label><textarea id="newNotice" rows="4"></textarea></div>
+        <div class="actions"><button id="publishNoticeBtn">Publish Notification</button></div>
+        <p id="noticeMsg" class="notice"></p>
+      </section>
+
+      <section class="card" id="records">
+        <h2>Manage Student Registration Records</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>Name</th><th>School</th><th>Class</th><th>Payment</th></tr></thead>
+            <tbody id="studentsTable"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <footer class="site-footer">Gyan Setu: Organized by Group of Sangam</footer>
+  <script src="/management-dashboard.js"></script>
+</body>
+</html>
