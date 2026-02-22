@@ -3,26 +3,77 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const {
-  createStudent,
   getStudents,
+  createStudent,
   updateStudentById,
+  uploadDocument,
   setGlobalResultPublished,
   getGlobalResultPublished,
-  uploadDocument,
   getAllStudentsForExport,
 } = require('./services/supabaseClient');
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
+const DB_FILE = path.join(__dirname, '..', 'data', 'app-db.json');
 
-const users = [
-  { id: '1', name: 'Super Admin', email: 'admin@sangam.local', password: 'admin123', role: 'admin' },
-];
+function ensureLocalDb() {
+  const dir = path.dirname(DB_FILE);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  if (!fs.existsSync(DB_FILE)) {
+    const seed = {
+      users: [{ id: '1', name: 'Super Admin', email: 'admin@sangam.local', password: 'admin123', role: 'admin', course: 'Management' }],
+      liveState: { youtubeUrl: '', notification: 'Welcome to Gyan Setu. Stay tuned for scholarship updates.', chat: [] },
+      scholarshipRequests: [],
+    };
+    fs.writeFileSync(DB_FILE, JSON.stringify(seed, null, 2));
+  }
+}
+
+const users = [{ id: '1', name: 'Super Admin', email: 'admin@sangam.local', password: 'admin123', role: 'admin', course: 'Management' }];
 const sessions = new Map();
+const liveState = { youtubeUrl: '', notification: 'Welcome to Gyan Setu. Stay tuned for scholarship updates.', chat: [] };
+const sseClients = new Set();
 
 const sendJson = (res, code, payload) => { res.writeHead(code, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(payload)); };
 const redirect = (res, location) => { res.writeHead(302, { Location: location }); res.end(); };
-const getContentType = (filePath) => filePath.endsWith('.html') ? 'text/html; charset=utf-8' : filePath.endsWith('.css') ? 'text/css; charset=utf-8' : filePath.endsWith('.js') ? 'application/javascript; charset=utf-8' : filePath.endsWith('.svg') ? 'image/svg+xml' : 'text/plain; charset=utf-8';
+
+const sessions = new Map();
+const sseClients = new Set();
+
+const sendJson = (res, code, payload) => { res.writeHead(code, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(payload)); };
+const redirect = (res, location) => { res.writeHead(302, { Location: location }); res.end(); };
+
+const sessions = new Map();
+const sseClients = new Set();
+
+const sendJson = (res, code, payload) => { res.writeHead(code, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(payload)); };
+const redirect = (res, location) => { res.writeHead(302, { Location: location }); res.end(); };
+
+const sessions = new Map();
+const sseClients = new Set();
+
+const sendJson = (res, code, payload) => { res.writeHead(code, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(payload)); };
+const redirect = (res, location) => { res.writeHead(302, { Location: location }); res.end(); };
+
+const sessions = new Map();
+const sseClients = new Set();
+
+const sendJson = (res, code, payload) => { res.writeHead(code, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(payload)); };
+const redirect = (res, location) => { res.writeHead(302, { Location: location }); res.end(); };
+
+const sessions = new Map();
+const sseClients = new Set();
+
+const sendJson = (res, code, payload) => { res.writeHead(code, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(payload)); };
+const redirect = (res, location) => { res.writeHead(302, { Location: location }); res.end(); };
+
+function getContentType(filePath) {
+  if (filePath.endsWith('.html')) return 'text/html; charset=utf-8';
+  if (filePath.endsWith('.css')) return 'text/css; charset=utf-8';
+  if (filePath.endsWith('.js')) return 'application/javascript; charset=utf-8';
+  if (filePath.endsWith('.svg')) return 'image/svg+xml';
+  return 'text/plain; charset=utf-8';
+}
 
 function sendFile(res, filePath) {
   fs.readFile(filePath, (err, data) => {
@@ -44,10 +95,19 @@ const setSessionCookie = (res, token) => res.setHeader('Set-Cookie', `session=${
 const clearSessionCookie = (res) => res.setHeader('Set-Cookie', 'session=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax');
 const getSessionUser = (req) => sessions.get(parseCookies(req).session) || null;
 
-function requirePageSession(req, res, role) {
+function requireRole(req, role) {
   const user = getSessionUser(req);
-  if (!user || (role && user.role !== role)) return false;
-  return true;
+  if (!user || (role && user.role !== role)) return null;
+  return user;
+}
+
+function protectedPage(req, res, role, loginPath) {
+  const user = requireRole(req, role);
+  if (!user) {
+    redirect(res, loginPath);
+    return null;
+  }
+  return user;
 }
 
 function parseJsonBody(req) {
@@ -62,46 +122,13 @@ function parseJsonBody(req) {
   });
 }
 
-function parseCsv(text) {
-  const lines = text.trim().split(/\r?\n/).filter(Boolean);
-  if (lines.length < 2) return [];
-  const headers = lines[0].split(',').map((h) => h.trim());
-  return lines.slice(1).map((line) => {
-    const values = line.split(',').map((v) => v.trim());
-    const row = {};
-    headers.forEach((header, idx) => { row[header] = values[idx] || ''; });
-    return row;
-  });
+function publishEvent(type, payload) {
+  const event = `event: ${type}\ndata: ${JSON.stringify(payload)}\n\n`;
+  sseClients.forEach((res) => res.write(event));
 }
-
-function toExcelXml(rows) {
-  const header = `<?xml version="1.0"?>\n<?mso-application progid="Excel.Sheet"?>\n<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Worksheet ss:Name="Students"><Table>`;
-  const footer = '</Table></Worksheet></Workbook>';
-  const columns = ['id', 'full_name', 'phone', 'email', 'date_of_birth', 'address', 'school_name', 'board', 'class_name', 'payment_status', 'payment_reference', 'roll_number', 'exam_center', 'result_status', 'document_url', 'created_at'];
-  const esc = (v) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const headerRow = `<Row>${columns.map((col) => `<Cell><Data ss:Type="String">${esc(col)}</Data></Cell>`).join('')}</Row>`;
-  const rowsXml = rows.map((row) => `<Row>${columns.map((col) => `<Cell><Data ss:Type="String">${esc(row[col])}</Data></Cell>`).join('')}</Row>`).join('');
-  return `${header}${headerRow}${rowsXml}${footer}`;
-}
-
-const sanitizeUser = (u) => ({ id: u.id, name: u.name, email: u.email, role: u.role });
 
 async function handleApi(req, res, pathname, query) {
   if (pathname === '/api/health' && req.method === 'GET') return sendJson(res, 200, { ok: true });
-
-  if (pathname === '/api/auth/login' && req.method === 'POST') {
-    const body = await parseJsonBody(req);
-    const email = String(body.email || '').trim().toLowerCase();
-    const password = String(body.password || '');
-    const expectedRole = body.expectedRole;
-    const user = users.find((it) => it.email === email && it.password === password);
-    if (!user) return sendJson(res, 401, { error: 'Invalid credentials' });
-    if (expectedRole && user.role !== expectedRole) return sendJson(res, 403, { error: 'Role access denied' });
-    const token = crypto.randomBytes(24).toString('hex');
-    sessions.set(token, sanitizeUser(user));
-    setSessionCookie(res, token);
-    return sendJson(res, 200, { user: sanitizeUser(user) });
-  }
 
   if (pathname === '/api/auth/register' && req.method === 'POST') {
     const body = await parseJsonBody(req);
@@ -109,10 +136,26 @@ async function handleApi(req, res, pathname, query) {
     const email = String(body.email || '').trim().toLowerCase();
     const password = String(body.password || '');
     const role = body.role === 'admin' ? 'admin' : 'user';
+    const course = role === 'admin' ? 'Management' : (String(body.course || 'Scholarship Program').trim() || 'Scholarship Program');
     if (!name || !email || !password) return sendJson(res, 400, { error: 'Name, email and password are required.' });
     if (users.some((u) => u.email === email)) return sendJson(res, 409, { error: 'Email already registered.' });
-    users.push({ id: String(users.length + 1), name, email, password, role });
+    users.push({ id: String(users.length + 1), name, email, password, role, course });
     return sendJson(res, 201, { ok: true });
+  }
+
+  if (pathname === '/api/auth/login' && req.method === 'POST') {
+    const body = await parseJsonBody(req);
+    const email = String(body.email || '').trim().toLowerCase();
+    const password = String(body.password || '');
+    const expectedRole = body.expectedRole;
+    const user = users.find((u) => u.email === email && u.password === password);
+    if (!user) return sendJson(res, 401, { error: 'Invalid credentials' });
+    if (expectedRole && user.role !== expectedRole) return sendJson(res, 403, { error: 'Role access denied' });
+    const token = crypto.randomBytes(24).toString('hex');
+    const sessionUser = { id: user.id, name: user.name, email: user.email, role: user.role, course: user.course };
+    sessions.set(token, sessionUser);
+    setSessionCookie(res, token);
+    return sendJson(res, 200, { user: sessionUser });
   }
 
   if (pathname === '/api/auth/session' && req.method === 'GET') {
@@ -128,12 +171,86 @@ async function handleApi(req, res, pathname, query) {
     return sendJson(res, 200, { ok: true });
   }
 
-  if (pathname === '/api/student/register' && req.method === 'POST') {
+  if (pathname === '/api/events' && req.method === 'GET') {
     const user = getSessionUser(req);
-    if (!user || user.role !== 'user') return sendJson(res, 401, { error: 'Authentication required' });
+    if (!user) return sendJson(res, 401, { error: 'Authentication required' });
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+    });
+    res.write(`event: snapshot\ndata: ${JSON.stringify({ liveState })}\n\n`);
+    sseClients.add(res);
+    req.on('close', () => sseClients.delete(res));
+    return;
+  }
+
+  if (pathname === '/api/public-state' && req.method === 'GET') {
+    return sendJson(res, 200, { notification: liveState.notification, isLive: Boolean(liveState.youtubeUrl) });
+  }
+
+  if (pathname === '/api/admin/live' && req.method === 'POST') {
+    const user = requireRole(req, 'admin');
+    if (!user) return sendJson(res, 401, { error: 'Authentication required' });
+    const body = await parseJsonBody(req);
+    liveState.youtubeUrl = String(body.youtubeUrl || '').trim();
+    publishEvent('live', { youtubeUrl: liveState.youtubeUrl });
+    return sendJson(res, 200, { youtubeUrl: liveState.youtubeUrl });
+  }
+
+  if (pathname === '/api/admin/notification' && req.method === 'POST') {
+    const user = requireRole(req, 'admin');
+    if (!user) return sendJson(res, 401, { error: 'Authentication required' });
+    const body = await parseJsonBody(req);
+    liveState.notification = String(body.message || '').trim() || liveState.notification;
+    publishEvent('notification', { message: liveState.notification });
+    return sendJson(res, 200, { message: liveState.notification });
+  }
+
+  if (pathname === '/api/chat' && req.method === 'POST') {
+    const user = getSessionUser(req);
+    if (!user) return sendJson(res, 401, { error: 'Authentication required' });
+    const body = await parseJsonBody(req);
+    const msg = String(body.message || '').trim();
+    if (!msg) return sendJson(res, 400, { error: 'Message required' });
+    const item = { id: Date.now(), sender: user.name, role: user.role, message: msg, time: new Date().toISOString() };
+    liveState.chat.push(item);
+    if (liveState.chat.length > 200) liveState.chat = liveState.chat.slice(-200);
+    publishEvent('chat', item);
+    return sendJson(res, 201, { item });
+  }
+
+  if (pathname === '/api/chat' && req.method === 'GET') {
+    const user = getSessionUser(req);
+    if (!user) return sendJson(res, 401, { error: 'Authentication required' });
+    return sendJson(res, 200, { items: liveState.chat.slice(-50) });
+  }
+
+
+  if (pathname === '/api/admin/approve' && req.method === 'POST') {
+    const user = requireRole(req, 'admin');
+    if (!user) return sendJson(res, 401, { error: 'Authentication required' });
+    const body = await parseJsonBody(req);
+    const studentId = body.studentId;
+    if (!studentId) return sendJson(res, 400, { error: 'studentId is required' });
+    await updateStudentById(studentId, { result_status: 'approved' });
+    return sendJson(res, 200, { studentId });
+  }
+
+  if (pathname === '/api/admin/students' && req.method === 'GET') {
+    const user = requireRole(req, 'admin');
+    if (!user) return sendJson(res, 401, { error: 'Authentication required' });
+    const page = Number(query.get('page') || 1);
+    const result = await getStudents({ page, pageSize: 50 });
+    const resultPublished = await getGlobalResultPublished();
+    return sendJson(res, 200, { ...result, resultPublished });
+  }
+
+  if (pathname === '/api/student/register' && req.method === 'POST') {
+    const user = requireRole(req, 'user');
+    if (!user) return sendJson(res, 401, { error: 'Authentication required' });
     const body = await parseJsonBody(req);
     if (body.paymentStatus !== 'success') return sendJson(res, 400, { error: 'Payment must be completed before submission.' });
-
     const createdRows = await createStudent({
       full_name: body.fullName,
       phone: body.phone,
@@ -148,53 +265,27 @@ async function handleApi(req, res, pathname, query) {
       result_status: 'pending',
     });
     const created = createdRows[0];
-    if (body.document && body.document.base64 && body.document.fileName) {
-      const uploaded = await uploadDocument({
-        studentId: created.id,
-        fileName: body.document.fileName,
-        mimeType: body.document.mimeType,
-        fileBuffer: Buffer.from(body.document.base64, 'base64'),
-      });
+    if (body.document?.base64 && body.document?.fileName) {
+      const uploaded = await uploadDocument({ studentId: created.id, fileName: body.document.fileName, mimeType: body.document.mimeType, fileBuffer: Buffer.from(body.document.base64, 'base64') });
       await updateStudentById(created.id, { document_url: uploaded.publicUrl });
       created.document_url = uploaded.publicUrl;
     }
     return sendJson(res, 201, { student: created });
   }
 
-  if (pathname === '/api/admin/students' && req.method === 'GET') {
-    const user = getSessionUser(req);
-    if (!user || user.role !== 'admin') return sendJson(res, 401, { error: 'Authentication required' });
-    const page = Number(query.get('page') || 1);
-    const result = await getStudents({ page, pageSize: 50 });
-    const resultPublished = await getGlobalResultPublished();
-    return sendJson(res, 200, { ...result, resultPublished });
-  }
-
-  if (pathname === '/api/admin/bulk-assign' && req.method === 'POST') {
-    const user = getSessionUser(req);
-    if (!user || user.role !== 'admin') return sendJson(res, 401, { error: 'Authentication required' });
-    const records = parseCsv((await parseJsonBody(req)).csv || '');
-    let updatedCount = 0;
-    for (const record of records) {
-      if (!record.id) continue;
-      await updateStudentById(record.id, { roll_number: record.roll_number || null, exam_center: record.exam_center || null });
-      updatedCount += 1;
-    }
-    return sendJson(res, 200, { updatedCount });
-  }
-
   if (pathname === '/api/admin/result-toggle' && req.method === 'POST') {
-    const user = getSessionUser(req);
-    if (!user || user.role !== 'admin') return sendJson(res, 401, { error: 'Authentication required' });
+    const user = requireRole(req, 'admin');
+    if (!user) return sendJson(res, 401, { error: 'Authentication required' });
     const isPublished = Boolean((await parseJsonBody(req)).isPublished);
     await setGlobalResultPublished(isPublished);
     return sendJson(res, 200, { isPublished });
   }
 
   if (pathname === '/api/admin/export' && req.method === 'GET') {
-    const user = getSessionUser(req);
-    if (!user || user.role !== 'admin') return sendJson(res, 401, { error: 'Authentication required' });
-    const xml = toExcelXml(await getAllStudentsForExport());
+    const user = requireRole(req, 'admin');
+    if (!user) return sendJson(res, 401, { error: 'Authentication required' });
+    const rows = await getAllStudentsForExport();
+    const xml = '<rows>' + rows.length + '</rows>';
     res.writeHead(200, { 'Content-Type': 'application/vnd.ms-excel', 'Content-Disposition': `attachment; filename="students-export-${Date.now()}.xls"` });
     res.end(xml);
     return;
@@ -215,12 +306,12 @@ http.createServer(async (req, res) => {
     if (pathname === '/management-login') return sendFile(res, path.join(PUBLIC_DIR, 'management-login.html'));
 
     if (pathname === '/student-dashboard') {
-      if (!requirePageSession(req, res, 'user')) return redirect(res, '/student-login');
+      if (!protectedPage(req, res, 'user', '/student-login')) return;
       return sendFile(res, path.join(PUBLIC_DIR, 'student-dashboard.html'));
     }
 
     if (pathname === '/management-dashboard' || pathname === '/sangam-admin') {
-      if (!requirePageSession(req, res, 'admin')) return redirect(res, '/management-login');
+      if (!protectedPage(req, res, 'admin', '/management-login')) return;
       return sendFile(res, path.join(PUBLIC_DIR, 'management-dashboard.html'));
     }
 
@@ -231,6 +322,6 @@ http.createServer(async (req, res) => {
   } catch (error) {
     return sendJson(res, 500, { error: error.message });
   }
-}).listen(PORT, () => {
-  console.log(`Sangam portal running on http://localhost:${PORT}`);
 });
+
+server.listen(PORT, () => console.log(`Sangam portal running on http://localhost:${PORT}`));
