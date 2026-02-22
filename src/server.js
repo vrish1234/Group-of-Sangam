@@ -294,10 +294,10 @@ async function handleApi(req, res, pathname, query) {
   return sendJson(res, 404, { error: 'API route not found' });
 }
 
-const server = http.createServer(async (req, res) => {
+http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, `http://${req.headers.host}`);
-    const { pathname } = url;
+    const pathname = url.pathname;
 
     if (pathname.startsWith('/api/')) return await handleApi(req, res, pathname, url.searchParams);
 
