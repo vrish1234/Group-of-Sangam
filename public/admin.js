@@ -10,6 +10,8 @@ const prevPage = document.getElementById('prevPage');
 const nextPage = document.getElementById('nextPage');
 const hamburger = document.getElementById('hamburger');
 const sidebar = document.getElementById('sidebar');
+const adminName = document.getElementById('adminName');
+const adminLogoutBtn = document.getElementById('adminLogoutBtn');
 
 let page = 1;
 let totalPages = 1;
@@ -27,6 +29,20 @@ function badge(status) {
     return '<span class="status-badge status-pending">PENDING</span>';
   }
   return '<span class="status-badge status-verification">VERIFICATION</span>';
+}
+
+async function ensureAdminSession() {
+  const response = await fetch('/api/auth/session');
+  const data = await response.json();
+
+  if (!response.ok || !data.user || data.user.role !== 'admin') {
+    alert('Please Login');
+    window.location.href = '/login';
+    return false;
+  }
+
+  adminName.textContent = data.user.name;
+  return true;
 }
 
 async function loadStudents() {
@@ -100,4 +116,14 @@ nextPage.addEventListener('click', async () => {
   }
 });
 
-loadStudents();
+adminLogoutBtn?.addEventListener('click', async () => {
+  await fetch('/api/auth/logout', { method: 'POST' });
+  window.location.href = '/login';
+});
+
+(async () => {
+  const isAdmin = await ensureAdminSession();
+  if (isAdmin) {
+    await loadStudents();
+  }
+})();
