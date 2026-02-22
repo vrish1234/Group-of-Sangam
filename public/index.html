@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gyan Setu - Group of Sangam</title>
+  <title>Gyan Setu - SBTE EMS Portal</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-  <header class="site-header">
-    <div class="brand"><div class="brand-logo">LOGO</div> Gyan Setu: Organized by Group of Sangam</div>
-    <div class="actions" id="publicActions" style="margin:0;">
-      <button id="openAuthBtn">Login / Register</button>
+  <header class="topbar">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button class="hamburger" id="hamburger">☰</button>
+      <div class="logo" style="display:flex;align-items:center;gap:8px;"><img src="./group-of-sangam-logo.svg" alt="Group of Sangam Logo" style="height:28px;width:28px;object-fit:contain;" /> <span>Gyan Setu • SBTE EMS</span></div>
     </div>
     <div class="actions" id="authActions" style="margin:0;display:none;">
       <span class="notice" id="userPill" style="color:#fff"></span>
-      <button class="danger" id="logoutBtn">Logout</button>
+      <button class="secondary" id="logoutBtn">Logout</button>
     </div>
   </header>
 
@@ -42,26 +42,22 @@
     </section>
 
     <section class="app-view" id="viewDashboard" style="display:none;">
-      <button id="sidebarToggleBtn" class="secondary" style="display:none;margin-bottom:10px;">☰ Menu</button>
       <div class="layout" style="min-height:auto;">
-        <aside class="sidebar" id="appSidebar" style="border-radius:14px;">
-          <a href="/dashboard" data-route="/dashboard" class="active">Dashboard</a>
-          <a href="/apply" data-route="/apply">Applications</a>
-          <a href="/results" data-route="/results">Results</a>
+        <aside class="sidebar" style="border-radius:14px;">
+          <a href="#" data-nav="dashboard" class="active">Dashboard</a>
+          <a href="#" data-nav="applications">Applications</a>
+          <a href="#" data-nav="results">Results</a>
         </aside>
         <div style="flex:1;">
           <section class="card dashboard-panel" id="panelDashboard">
-            <h2>User Dashboard</h2>
+            <h2>Route 3: User Dashboard</h2>
+            <p class="notice">Your quick overview appears here after login.</p>
             <p id="dashboardGreeting"></p>
-            <h3>Recent Applications</h3>
-            <ul id="recentApplicationsList" class="notice">
-              <li>No applications submitted yet.</li>
-            </ul>
           </section>
 
           <section class="card dashboard-panel" id="panelApplications" style="display:none;">
-            <h2>3-Step Scholarship Form</h2>
-            <p class="notice">Accessible only after login from dashboard.</p>
+            <h2>Route 4: Multi-step Scholarship Form</h2>
+            <p class="notice">Form is accessible only after login from Dashboard.</p>
 
             <div id="step1" class="form-step">
               <h3>Step 1: Personal Details</h3>
@@ -69,23 +65,18 @@
                 <div class="field"><label>Full Name</label><input id="fullName" required /></div>
                 <div class="field"><label>Phone</label><input id="phone" required /></div>
               </div>
+              <div class="actions"><button id="toStep2Btn">Continue to Step 2</button></div>
+              <p id="step1Msg" class="notice"></p>
             </div>
 
-            <div id="step2" class="form-step" style="display:none;">
+            <div id="step2" class="form-step" style="display:none;opacity:.6;pointer-events:none;">
               <h3>Step 2: Academic Details</h3>
               <div class="grid">
-                <div class="field"><label>School</label><input id="schoolName" required /></div>
-                <div class="field"><label>Class</label><input id="className" required /></div>
+                <div class="field"><label>School</label><input id="schoolName" /></div>
+                <div class="field"><label>Class</label><input id="className" /></div>
               </div>
-            </div>
-
-            <div id="step3" class="form-step" style="display:none;">
-              <h3>Step 3: Payment & Submit</h3>
-              <p id="paymentStatus" class="notice">Payment: Pending</p>
-              <div class="actions">
-                <button id="payBtn">Pay ₹199</button>
-                <span id="paySpinner" class="notice" style="display:none;">Processing payment...</span>
-              </div>
+              <div class="actions"><button id="submitFormBtn">Submit Application</button></div>
+              <p id="step2Msg" class="notice"></p>
             </div>
 
             <div class="actions">
@@ -102,10 +93,8 @@
           </section>
         </div>
       </div>
-    </section>
-  </main>
-
-  <footer class="site-footer">Gyan Setu: Organized by Group of Sangam</footer>
-  <script src="./app.js"></script>
+    </main>
+  </div>
+  <script src="/student.js"></script> 
 </body>
 </html>

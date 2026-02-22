@@ -138,8 +138,3 @@ th { color: #0f2f7d; }
 }
 
 .card, .site-header, .site-footer { animation: fadeInUp .45s ease both; }
-
-@media (max-width: 900px) {
-  #appSidebar { display: none; }
-  #appSidebar.collapsed { display: flex; }
-}
