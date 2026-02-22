@@ -3,30 +3,77 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gyan Setu Home</title>
+  <title>Gyan Setu - SBTE EMS Portal</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-  <header class="site-header">
-    <div class="brand"><div class="brand-logo">LOGO</div> Gyan Setu: Organized by Group of Sangam</div>
-    <div class="actions" style="margin:0;">
-      <button onclick="window.location.href='/student-login'">Student Login</button>
-      <button class="secondary" onclick="window.location.href='/management-login'">Management Login</button>
+  <header class="topbar">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button class="hamburger" id="hamburger">☰</button>
+      <div class="logo" style="display:flex;align-items:center;gap:8px;"><img src="./group-of-sangam-logo.svg" alt="Group of Sangam Logo" style="height:28px;width:28px;object-fit:contain;" /> <span>Gyan Setu • SBTE EMS</span></div>
+    </div>
+    <div class="topbar-right">
+      <div class="profile-pill">User Profile ▾ Logout</div>
     </div>
   </header>
-  <main class="main-content container">
-    <section class="card">
-      <h1>Welcome to Gyan Setu</h1>
-      <p class="notice">Providing scholarships and free education for a better future.</p>
-    </section>
-    <section class="card">
-      <h2>Public Notification Bar</h2>
-      <p id="publicNotice" class="notice">Loading updates...</p>
-    </section>
-  </main>
-  <footer class="site-footer">Gyan Setu: Organized by Group of Sangam</footer>
-  <script>
-    fetch('/api/public-state').then(r=>r.json()).then(d=>{document.getElementById('publicNotice').textContent=d.notification;}).catch(()=>{document.getElementById('publicNotice').textContent='Updates will appear here.';});
-  </script>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <a href="#" class="active">🏠 Dashboard</a>
+      <a href="#">🗂️ Applications</a>
+      <a href="#">🎫 Admit Cards</a>
+      <a href="#">💳 Payments</a>
+      <a href="#">📊 Results</a>
+    </aside>
+
+    <main class="main-content">
+      <div class="card">
+        <h1>Scholarship Application</h1>
+        <p class="notice">Complete all 3 steps. Final submission unlocks only after successful mock payment.</p>
+
+        <form id="scholarshipForm">
+          <section class="step active" data-step="1">
+            <h2>Step 1: Personal Details</h2>
+            <div class="form-grid">
+              <div class="field"><label>Full Name</label><input required id="fullName" /></div>
+              <div class="field"><label>Phone</label><input required id="phone" /></div>
+              <div class="field"><label>Email</label><input required id="email" type="email" /></div>
+              <div class="field"><label>Date of Birth</label><input required id="dateOfBirth" type="date" /></div>
+              <div class="field" style="grid-column: span 2;"><label>Address</label><input required id="address" /></div>
+            </div>
+          </section>
+
+          <section class="step" data-step="2">
+            <h2>Step 2: Academic Details</h2>
+            <div class="form-grid">
+              <div class="field"><label>School</label><input required id="schoolName" /></div>
+              <div class="field"><label>Board</label><input required id="board" /></div>
+              <div class="field"><label>Class</label><input required id="className" /></div>
+            </div>
+          </section>
+
+          <section class="step" data-step="3">
+            <h2>Step 3: Document Upload & Payment</h2>
+            <div class="form-grid">
+              <div class="field" style="grid-column: span 2;"><label>Upload Document (PDF/Image)</label><input id="document" type="file" accept=".pdf,.png,.jpg,.jpeg" /></div>
+            </div>
+            <div class="card" style="margin-top:14px;">
+              <h3>Dummy Payment Checkout</h3>
+              <button type="button" id="payBtn">Pay ₹199 (Mock)</button>
+              <p class="notice" id="paymentStatus">Payment pending</p>
+            </div>
+          </section>
+
+          <div class="actions">
+            <button type="button" id="prevBtn">Previous</button>
+            <button type="button" id="nextBtn">Next</button>
+            <button type="submit" id="submitBtn" disabled>Submit Form</button>
+          </div>
+          <p id="message" class="notice"></p>
+        </form>
+      </div>
+    </main>
+  </div>
+  <script src="/student.js"></script> 
 </body>
 </html>
