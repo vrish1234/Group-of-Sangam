@@ -15,6 +15,15 @@ const LS_USERS = 'gyanSetuUsers';
 const LS_SESSION = 'gyanSetuSession';
 const LS_APPS = 'gyanSetuApplications';
 
+function hashPassword(password) {
+  let hash = 0;
+  for (let i = 0; i < password.length; i++) {
+    hash = ((hash << 5) - hash) + password.charCodeAt(i);
+    hash |= 0;
+  }
+  return 'hp_' + (hash >>> 0).toString(16);
+}
+
 function getUsers() {
   return JSON.parse(localStorage.getItem(LS_USERS) || '[]');
 }
@@ -139,14 +148,16 @@ function doAuth() {
       $('authMsg').textContent = 'Account already exists. Please login.';
       return;
     }
-    users.push({ name, email, password });
+    const passwordHash = hashPassword(password);
+    users.push({ name, email, passwordHash });
     setUsers(users);
     $('authMsg').textContent = 'Account created. Please login now.';
     setAuthMode(false);
     return;
   }
 
-  const user = users.find((u) => u.email === email && u.password === password);
+  const passwordHash = hashPassword(password);
+  const user = users.find((u) => u.email === email && u.passwordHash === passwordHash);
   if (!user) {
     $('authMsg').textContent = 'Invalid credentials.';
     return;
