@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Dashboard - Gyan Setu</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand"><div class="brand-logo">LOGO</div> Gyan Setu: Organized by Group of Sangam</div>
+    <button id="logoutBtn" class="danger">Logout</button>
+  </header>
+
+  <main class="main-content container">
+    <section class="card">
+      <h1 id="welcomeTitle">Welcome, Student!</h1>
+      <p id="profileMeta" class="notice"></p>
+    </section>
+
+    <section class="card" id="joinDetailsSection">
+      <h2>Join Details</h2>
+      <p class="notice">Yahan se aap class timing, eligibility aur management notices dekh sakte hain.</p>
+      <ul>
+        <li>Class Timing: 6:00 PM - 8:00 PM</li>
+        <li>Scholarship Status: <span id="scholarshipStatus">Closed by Management</span></li>
+        <li>Notification: <span id="topNotice">Loading...</span></li>
+      </ul>
+    </section>
+
+    <section class="card" id="applicationSection" style="display:none;">
+      <h2>Scholarship Application Form</h2>
+      <p class="notice">Ye form sirf tab open hota hai jab Management isko enable kare.</p>
+      <form id="applicationForm" class="grid">
+        <div class="field"><label>Full Name</label><input id="fullName" required /></div>
+        <div class="field"><label>Phone</label><input id="phone" required /></div>
+        <div class="field"><label>School Name</label><input id="schoolName" required /></div>
+        <div class="field"><label>Class</label><input id="className" required /></div>
+      </form>
+      <div class="actions"><button id="submitApplicationBtn">Submit Application</button></div>
+      <p id="applicationMsg" class="notice"></p>
+    </section>
+
+    <section class="card">
+      <h2>Live Learning Section</h2>
+      <div id="liveContainer" class="card" style="margin:0;background:rgba(15,23,42,.04)">
+        <p id="livePlaceholder" class="notice">Wait for the next live session.</p>
+      </div>
+    </section>
+
+    <section class="grid">
+      <section class="card">
+        <h3>Current Online Classes</h3>
+        <ul>
+          <li>Math Foundation</li>
+          <li>Science Core</li>
+          <li>Scholarship Counseling</li>
+        </ul>
+      </section>
+      <section class="card">
+        <h3>Interactive Student Chat</h3>
+        <div id="chatLog" style="height:220px;overflow:auto;border:1px solid #dbe2ee;border-radius:10px;padding:8px;background:#fff"></div>
+        <div class="actions">
+          <input id="chatInput" placeholder="Ask your question..." style="flex:1" />
+          <button id="sendChatBtn">Send</button>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <footer class="site-footer">Gyan Setu: Organized by Group of Sangam</footer>
+  <script src="./student-dashboard.js"></script>
+</body>
+</html>
