@@ -3,15 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gyan Setu Home</title>
-  <link rel="stylesheet" href="/styles.css" />
+  <title>Gyan Setu - SBTE EMS Portal</title>
+  <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-  <header class="site-header">
-    <div class="brand"><div class="brand-logo">LOGO</div> Gyan Setu: Organized by Group of Sangam</div>
-    <div class="actions" style="margin:0;">
-      <button onclick="window.location.href='/student-login'">Student Login</button>
-      <button class="secondary" onclick="window.location.href='/management-login'">Management Login</button>
+  <header class="topbar">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button class="hamburger" id="hamburger">☰</button>
+      <div class="logo" style="display:flex;align-items:center;gap:8px;"><img src="./group-of-sangam-logo.svg" alt="Group of Sangam Logo" style="height:28px;width:28px;object-fit:contain;" /> <span>Gyan Setu • SBTE EMS</span></div>
+    </div>
+    <div class="topbar-right">
+      <div class="profile-pill">User Profile ▾ Logout</div>
     </div>
   </header>
 
@@ -26,6 +28,16 @@
     </section>
   </main>
 
-  <footer class="site-footer">Gyan Setu: Organized by Group of Sangam</footer>
+          <div class="actions">
+            <button type="button" id="prevBtn">Previous</button>
+            <button type="button" id="nextBtn">Next</button>
+            <button type="submit" id="submitBtn" disabled>Submit Form</button>
+          </div>
+          <p id="message" class="notice"></p>
+        </form>
+      </div>
+    </main>
+  </div>
+  <script src="/student.js"></script> 
 </body>
 </html>
