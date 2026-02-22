@@ -3,127 +3,98 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gyan Setu | Group of Sangam</title>
+  <title>Gyan Setu - SBTE EMS Portal</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-  <!-- deploy-refresh: pages-actions-v4 -->
-
-  <header class="site-header">
-    <div class="brand">
-      <div class="brand-logo">LOGO</div>
-      Gyan Setu: Organized by Group of Sangam
+  <header class="topbar">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button class="hamburger" id="hamburger">☰</button>
+      <div class="logo" style="display:flex;align-items:center;gap:8px;"><img src="./group-of-sangam-logo.svg" alt="Group of Sangam Logo" style="height:28px;width:28px;object-fit:contain;" /> <span>Gyan Setu • SBTE EMS</span></div>
     </div>
-    <div class="actions" id="guestActions">
-      <button id="openLoginBtn">Login</button>
-      <button id="openSignupBtn" class="secondary">Sign up</button>
-    </div>
-    <div class="actions" id="userActions" style="display:none;">
-      <span class="notice" id="userBadge" style="color:#fff;"></span>
-      <button id="logoutBtn" class="danger">Logout</button>
+    <div class="actions" id="authActions" style="margin:0;display:none;">
+      <span class="notice" id="userPill" style="color:#fff"></span>
+      <button class="secondary" id="logoutBtn">Logout</button>
     </div>
   </header>
 
   <main class="main-content container">
     <section class="card app-view" id="viewLanding">
       <h1>Welcome to Gyan Setu</h1>
-      <p class="notice">A clean, standalone portal flow: Landing → Login → Dashboard → Apply.</p>
-      <p>Scholarships and learning support by Group of Sangam.</p>
-      <div class="actions">
-        <button id="startNowBtn">Start Now</button>
-      </div>
+      <p class="notice">Route 1: Landing Page (Overview of Sangam)</p>
+      <p>Group of Sangam is building an education-first ecosystem for scholarships, classes and transparent student support.</p>
+      <div class="actions"><button id="goAuthBtn">Start Login / Register</button></div>
     </section>
 
     <section class="card app-view" id="viewAuth" style="display:none;">
-      <h2 id="authHeading">Login</h2>
-      <p class="notice">You must login to access dashboard and scholarship form.</p>
-      <form id="authForm" class="grid" onsubmit="return false;">
-        <div class="field" id="nameField" style="display:none;">
-          <label for="authName">Full name</label>
-          <input id="authName" autocomplete="name" />
-        </div>
-        <div class="field">
-          <label for="authEmail">Email</label>
-          <input id="authEmail" type="email" autocomplete="email" required />
-        </div>
-        <div class="field">
-          <label for="authPassword">Password</label>
-          <input id="authPassword" type="password" autocomplete="current-password" required />
-        </div>
+      <h2 id="authTitle">Login</h2>
+      <p class="notice">Route 2: Login/Register Page</p>
+      <form id="authForm" class="grid">
+        <div class="field" id="nameField" style="display:none;"><label>Name</label><input id="authName" /></div>
+        <div class="field"><label>Email</label><input id="authEmail" type="email" required /></div>
+        <div class="field"><label>Password</label><input id="authPassword" type="password" required /></div>
       </form>
       <div class="actions">
         <button id="authSubmitBtn">Login</button>
-        <button id="authModeBtn" class="secondary">Create account</button>
+        <button class="secondary" id="switchAuthModeBtn">Create account</button>
       </div>
       <p id="authMsg" class="notice"></p>
     </section>
 
-    <section class="app-view" id="viewApp" style="display:none;">
-      <button id="sidebarToggleBtn" class="secondary" style="display:none;margin-bottom:10px;">☰ Menu</button>
+    <section class="app-view" id="viewDashboard" style="display:none;">
       <div class="layout" style="min-height:auto;">
-        <aside class="sidebar" id="sidebar" style="border-radius:14px;">
-          <a href="/dashboard" data-route="/dashboard" class="active">Dashboard</a>
-          <a href="/apply" data-route="/apply">Scholarship Form</a>
-          <a href="/results" data-route="/results">Results</a>
+        <aside class="sidebar" style="border-radius:14px;">
+          <a href="#" data-nav="dashboard" class="active">Dashboard</a>
+          <a href="#" data-nav="applications">Applications</a>
+          <a href="#" data-nav="results">Results</a>
         </aside>
-
         <div style="flex:1;">
-          <section class="card panel" id="panelDashboard">
-            <h2>Dashboard</h2>
-            <p id="welcomeText"></p>
-            <h3>Recent Applications</h3>
-            <ul id="applicationsList" class="notice">
-              <li>No applications yet.</li>
-            </ul>
+          <section class="card dashboard-panel" id="panelDashboard">
+            <h2>Route 3: User Dashboard</h2>
+            <p class="notice">Your quick overview appears here after login.</p>
+            <p id="dashboardGreeting"></p>
           </section>
 
-          <section class="card panel" id="panelApply" style="display:none;">
-            <h2>Scholarship Application</h2>
-            <p class="notice">Complete all 3 steps. Next stays disabled until current step is valid.</p>
+          <section class="card dashboard-panel" id="panelApplications" style="display:none;">
+            <h2>Route 4: Multi-step Scholarship Form</h2>
+            <p class="notice">Form is accessible only after login from Dashboard.</p>
 
             <div id="step1" class="form-step">
-              <h3>Step 1: Personal</h3>
+              <h3>Step 1: Personal Details</h3>
               <div class="grid">
-                <div class="field"><label for="fullName">Full Name</label><input id="fullName" required /></div>
-                <div class="field"><label for="phone">Phone</label><input id="phone" required /></div>
+                <div class="field"><label>Full Name</label><input id="fullName" required /></div>
+                <div class="field"><label>Phone</label><input id="phone" required /></div>
               </div>
+              <div class="actions"><button id="toStep2Btn">Continue to Step 2</button></div>
+              <p id="step1Msg" class="notice"></p>
             </div>
 
-            <div id="step2" class="form-step" style="display:none;">
-              <h3>Step 2: Academic</h3>
+            <div id="step2" class="form-step" style="display:none;opacity:.6;pointer-events:none;">
+              <h3>Step 2: Academic Details</h3>
               <div class="grid">
-                <div class="field"><label for="schoolName">School Name</label><input id="schoolName" required /></div>
-                <div class="field"><label for="className">Class</label><input id="className" required /></div>
+                <div class="field"><label>School</label><input id="schoolName" /></div>
+                <div class="field"><label>Class</label><input id="className" /></div>
               </div>
-            </div>
-
-            <div id="step3" class="form-step" style="display:none;">
-              <h3>Step 3: Payment & Submit</h3>
-              <p id="paymentStatus" class="notice">Payment: Pending</p>
-              <div class="actions">
-                <button id="payBtn">Pay ₹199</button>
-                <span id="paySpinner" class="notice" style="display:none;">Processing payment...</span>
-              </div>
+              <div class="actions"><button id="submitFormBtn">Submit Application</button></div>
+              <p id="step2Msg" class="notice"></p>
             </div>
 
             <div class="actions">
-              <button id="prevBtn" class="secondary" style="display:none;">Previous</button>
-              <button id="nextBtn" disabled>Next</button>
-              <button id="submitBtn" style="display:none;" disabled>Submit</button>
+              <button class="secondary" id="prevBtn" style="display:none;">Previous</button>
+              <button id="nextBtn">Next</button>
+              <button id="submitFormBtn" style="display:none;" disabled>Submit Application</button>
             </div>
-            <p id="formMsg" class="notice"></p>
+            <p id="stepMsg" class="notice"></p>
           </section>
 
-          <section class="card panel" id="panelResults" style="display:none;">
+          <section class="card dashboard-panel" id="panelResults" style="display:none;">
             <h2>Results</h2>
-            <p class="notice">Status updates will appear here after review.</p>
+            <p class="notice">Your scholarship and class results will be shown here.</p>
           </section>
         </div>
       </div>
-    </section>
-  </main>
-
-  <footer class="site-footer">Gyan Setu: Organized by Group of Sangam</footer>
-  <script src="./app.js"></script>
+    </main>
+  </div>
+  <script src="/student.js"></script> 
 </body>
 </html>
