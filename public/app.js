@@ -15,6 +15,20 @@ const LS_USERS = 'gyanSetuUsers';
 const LS_SESSION = 'gyanSetuSession';
 const LS_APPS = 'gyanSetuApplications';
 
+// Hash a password using SHA-256 and encode it as a hex string.
+async function hashPassword(password) {
+  const enc = new TextEncoder();
+  const data = enc.encode(password);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  const bytes = new Uint8Array(digest);
+  let hex = '';
+  for (let i = 0; i < bytes.length; i++) {
+    const byteHex = bytes[i].toString(16).padStart(2, '0');
+    hex += byteHex;
+  }
+  return hex;
+}
+
 function getUsers() {
   return JSON.parse(localStorage.getItem(LS_USERS) || '[]');
 }
@@ -118,7 +132,7 @@ function resetForm() {
   updateStepButtons();
 }
 
-function doAuth() {
+async function doAuth() {
   const email = $('authEmail').value.trim().toLowerCase();
   const password = $('authPassword').value;
   const name = $('authName').value.trim();
@@ -139,14 +153,16 @@ function doAuth() {
       $('authMsg').textContent = 'Account already exists. Please login.';
       return;
     }
-    users.push({ name, email, password });
+    const passwordHash = await hashPassword(password);
+    users.push({ name, email, passwordHash });
     setUsers(users);
     $('authMsg').textContent = 'Account created. Please login now.';
     setAuthMode(false);
     return;
   }
 
-  const user = users.find((u) => u.email === email && u.password === password);
+  const passwordHash = await hashPassword(password);
+  const user = users.find((u) => u.email === email && u.passwordHash === passwordHash);
   if (!user) {
     $('authMsg').textContent = 'Invalid credentials.';
     return;
