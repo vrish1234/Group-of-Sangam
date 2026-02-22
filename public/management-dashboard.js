@@ -8,9 +8,6 @@ const streamMsg = document.getElementById('streamMsg');
 const chatLog = document.getElementById('chatLog');
 const chatInput = document.getElementById('chatInput');
 const sendChatBtn = document.getElementById('sendChatBtn');
-const openScholarshipBtn = document.getElementById('openScholarshipBtn');
-const closeScholarshipBtn = document.getElementById('closeScholarshipBtn');
-const scholarshipToggleMsg = document.getElementById('scholarshipToggleMsg');
 
 function appendChat(item) {
   const div = document.createElement('div');
@@ -89,23 +86,6 @@ sendChatBtn.addEventListener('click', async () => {
   if (!message) return;
   const response = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message }) });
   if (response.ok) chatInput.value = '';
-});
-
-
-openScholarshipBtn?.addEventListener('click', async () => {
-  const response = await fetch('/api/admin/scholarship-toggle', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isOpen: true }),
-  });
-  const data = await response.json();
-  scholarshipToggleMsg.textContent = response.ok ? `Scholarship form is now ${data.isOpen ? 'OPEN' : 'CLOSED'}.` : (data.error || 'Toggle failed');
-});
-
-closeScholarshipBtn?.addEventListener('click', async () => {
-  const response = await fetch('/api/admin/scholarship-toggle', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isOpen: false }),
-  });
-  const data = await response.json();
-  scholarshipToggleMsg.textContent = response.ok ? `Scholarship form is now ${data.isOpen ? 'OPEN' : 'CLOSED'}.` : (data.error || 'Toggle failed');
 });
 
 adminLogoutBtn.addEventListener('click', async () => {
