@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gyan Setu - Group of Sangam</title>
+  <link rel="stylesheet" href="./public/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand"><div class="brand-logo">LOGO</div> Gyan Setu: Organized by Group of Sangam</div>
+    <div class="actions" id="publicActions" style="margin:0;">
+      <button id="openAuthBtn">Login / Register</button>
+    </div>
+    <div class="actions" id="authActions" style="margin:0;display:none;">
+      <span class="notice" id="userPill" style="color:#fff"></span>
+      <button class="danger" id="logoutBtn">Logout</button>
+    </div>
+  </header>
+
+  <main class="main-content container">
+    <section class="card app-view" id="viewLanding">
+      <h1>Welcome to Gyan Setu</h1>
+      <p class="notice">Route 1: Landing Page (Overview of Sangam)</p>
+      <p>Group of Sangam is building an education-first ecosystem for scholarships, classes and transparent student support.</p>
+      <div class="actions"><button id="goAuthBtn">Start Login / Register</button></div>
+    </section>
+
+    <section class="card app-view" id="viewAuth" style="display:none;">
+      <h2 id="authTitle">Login</h2>
+      <p class="notice">Route 2: Login/Register Page</p>
+      <form id="authForm" class="grid">
+        <div class="field" id="nameField" style="display:none;"><label>Name</label><input id="authName" /></div>
+        <div class="field"><label>Email</label><input id="authEmail" type="email" required /></div>
+        <div class="field"><label>Password</label><input id="authPassword" type="password" required /></div>
+      </form>
+      <div class="actions">
+        <button id="authSubmitBtn">Login</button>
+        <button class="secondary" id="switchAuthModeBtn">Create account</button>
+      </div>
+      <p id="authMsg" class="notice"></p>
+    </section>
+
+    <section class="app-view" id="viewDashboard" style="display:none;">
+      <button id="sidebarToggleBtn" class="secondary" style="display:none;margin-bottom:10px;">☰ Menu</button>
+      <div class="layout" style="min-height:auto;">
+        <aside class="sidebar" id="appSidebar" style="border-radius:14px;">
+          <a href="/dashboard" data-route="/dashboard" class="active">Dashboard</a>
+          <a href="/apply" data-route="/apply">Applications</a>
+          <a href="/results" data-route="/results">Results</a>
+        </aside>
+        <div style="flex:1;">
+          <section class="card dashboard-panel" id="panelDashboard">
+            <h2>User Dashboard</h2>
+            <p id="dashboardGreeting"></p>
+            <h3>Recent Applications</h3>
+            <ul id="recentApplicationsList" class="notice">
+              <li>No applications submitted yet.</li>
+            </ul>
+          </section>
+
+          <section class="card dashboard-panel" id="panelApplications" style="display:none;">
+            <h2>3-Step Scholarship Form</h2>
+            <p class="notice">Accessible only after login from dashboard.</p>
+
+            <div id="step1" class="form-step">
+              <h3>Step 1: Personal Details</h3>
+              <div class="grid">
+                <div class="field"><label>Full Name</label><input id="fullName" required /></div>
+                <div class="field"><label>Phone</label><input id="phone" required /></div>
+              </div>
+            </div>
+
+            <div id="step2" class="form-step" style="display:none;">
+              <h3>Step 2: Academic Details</h3>
+              <div class="grid">
+                <div class="field"><label>School</label><input id="schoolName" required /></div>
+                <div class="field"><label>Class</label><input id="className" required /></div>
+              </div>
+            </div>
+
+            <div id="step3" class="form-step" style="display:none;">
+              <h3>Step 3: Payment & Submit</h3>
+              <p id="paymentStatus" class="notice">Payment: Pending</p>
+              <div class="actions">
+                <button id="payBtn">Pay ₹199</button>
+                <span id="paySpinner" class="notice" style="display:none;">Processing payment...</span>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button class="secondary" id="prevBtn" style="display:none;">Previous</button>
+              <button id="nextBtn">Next</button>
+              <button id="submitFormBtn" style="display:none;" disabled>Submit Application</button>
+            </div>
+            <p id="stepMsg" class="notice"></p>
+          </section>
+
+          <section class="card dashboard-panel" id="panelResults" style="display:none;">
+            <h2>Results</h2>
+            <p class="notice">Your scholarship and class results will be shown here.</p>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">Gyan Setu: Organized by Group of Sangam</footer>
+  <script src="./public/app.js"></script>
+</body>
+</html>
