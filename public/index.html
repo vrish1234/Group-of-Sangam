@@ -3,98 +3,435 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gyan Setu - SBTE EMS Portal</title>
-  <link rel="stylesheet" href="./styles.css" />
+  <title>Group of Sangam | Supabase University Management SPA</title>
+  <meta name="description" content="Unified Supabase-powered management system for Group of Sangam." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --card:#fff; --ink:#111827; --muted:#64748b; --brand:#1d4ed8; --accent:#0f766e; --danger:#dc2626; --line:#dbe4f1; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Inter, system-ui, sans-serif; color: var(--ink); background: linear-gradient(180deg,#eef3ff,#f8fbff 60%); }
+    .topbar { position: sticky; top: 0; z-index: 9; display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; background: #0f172a; color: #fff; }
+    .brand { font-weight: 700; }
+    .hidden { display: none !important; }
+    .logout-btn { border: none; background: var(--danger); color: #fff; border-radius: 10px; padding: 8px 12px; font-weight: 600; cursor: pointer; }
+    .container { max-width: 1200px; margin: 20px auto; padding: 0 16px 30px; }
+    .grid { display: grid; gap: 16px; }
+    .entry-grid { grid-template-columns: 1.4fr .8fr; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 8px 24px rgba(15, 23, 42, .05); padding: 18px; }
+    h1,h2,h3 { margin: 0 0 8px; }
+    p { margin: 0 0 10px; color: var(--muted); }
+    .field { display: grid; gap: 6px; margin-bottom: 12px; }
+    .field input, .field textarea { border: 1px solid #c8d4e5; border-radius: 10px; padding: 10px 12px; width: 100%; font-size: 14px; font-family: inherit; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn { border: none; border-radius: 10px; padding: 10px 14px; font-weight: 600; cursor: pointer; }
+    .btn-primary { background: var(--brand); color: #fff; }
+    .btn-secondary { background: #e2e8f0; color: #0f172a; }
+    .btn-accent { background: var(--accent); color: #fff; }
+    .notice { border-radius: 10px; background: #eff6ff; color: #1e3a8a; padding: 10px; font-size: 13px; margin-top: 8px; }
+    .err { background: #fef2f2 !important; color: #991b1b !important; }
+    .ok { background: #ecfdf5 !important; color: #166534 !important; }
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .chip { display:inline-block; border-radius: 999px; padding: 5px 10px; font-size: 12px; background:#e2e8f0; margin-right: 6px; }
+    .metrics { display: grid; grid-template-columns: repeat(3,minmax(140px,1fr)); gap: 10px; }
+    .metric { padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: #f8fbff; }
+    .metric strong { display: block; font-size: 24px; color: #0f172a; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { border-bottom: 1px solid #e2e8f0; padding: 8px; text-align: left; }
+    th { background: #f8fafc; }
+    @media (max-width: 900px) { .entry-grid, .split { grid-template-columns: 1fr; } }
+  </style>
 </head>
 <body>
   <header class="topbar">
-    <div style="display:flex;align-items:center;gap:10px;">
-      <button class="hamburger" id="hamburger">☰</button>
-      <div class="logo" style="display:flex;align-items:center;gap:8px;"><img src="./group-of-sangam-logo.svg" alt="Group of Sangam Logo" style="height:28px;width:28px;object-fit:contain;" /> <span>Gyan Setu • SBTE EMS</span></div>
-    </div>
-    <div class="actions" id="authActions" style="margin:0;display:none;">
-      <span class="notice" id="userPill" style="color:#fff"></span>
-      <button class="secondary" id="logoutBtn">Logout</button>
-    </div>
+    <div class="brand">🎓 Group of Sangam | Supabase Management System (60,000 Capacity)</div>
+    <button id="logoutBtn" class="logout-btn hidden">Logout</button>
   </header>
 
-  <main class="main-content container">
-    <section class="card app-view" id="viewLanding">
-      <h1>Welcome to Gyan Setu</h1>
-      <p class="notice">Route 1: Landing Page (Overview of Sangam)</p>
-      <p>Group of Sangam is building an education-first ecosystem for scholarships, classes and transparent student support.</p>
-      <div class="actions"><button id="goAuthBtn">Start Login / Register</button></div>
+  <main class="container">
+    <section id="configNotice" class="card">
+      <h3>Supabase Setup</h3>
+      <p>Set <code>window.SUPABASE_URL</code> and <code>window.SUPABASE_ANON_KEY</code> before using auth/data features.</p>
+      <p class="notice">Tables expected: <code>profiles</code>, <code>results</code>, <code>classes</code>, <code>notices</code>.</p>
     </section>
 
-    <section class="card app-view" id="viewAuth" style="display:none;">
-      <h2 id="authTitle">Login</h2>
-      <p class="notice">Route 2: Login/Register Page</p>
-      <form id="authForm" class="grid">
-        <div class="field" id="nameField" style="display:none;"><label>Name</label><input id="authName" /></div>
-        <div class="field"><label>Email</label><input id="authEmail" type="email" required /></div>
-        <div class="field"><label>Password</label><input id="authPassword" type="password" required /></div>
-      </form>
-      <div class="actions">
-        <button id="authSubmitBtn">Login</button>
-        <button class="secondary" id="switchAuthModeBtn">Create account</button>
-      </div>
-      <p id="authMsg" class="notice"></p>
+    <section id="entryGate" class="grid entry-grid">
+      <article class="card">
+        <h2>Student Login / Register</h2>
+        <p>Front-and-center entry point.</p>
+        <form id="studentAuthForm">
+          <div class="row">
+            <button type="button" id="studentModeLogin" class="btn btn-primary">Login</button>
+            <button type="button" id="studentModeRegister" class="btn btn-secondary">Register</button>
+          </div>
+          <div class="field hidden" id="studentNameWrap"><label>Full Name</label><input id="studentName" placeholder="Student full name"></div>
+          <div class="field hidden" id="studentIdWrap"><label>Student ID</label><input id="studentId" placeholder="e.g. GSU24001"></div>
+          <div class="field"><label>Email</label><input id="studentEmail" type="email" required></div>
+          <div class="field"><label>Password</label><input id="studentPassword" type="password" required></div>
+          <button class="btn btn-primary" type="submit" id="studentSubmitBtn">Login Student</button>
+          <div id="studentAuthMsg" class="notice hidden"></div>
+        </form>
+      </article>
+
+      <article class="card">
+        <h3>Management Login</h3>
+        <p>Separate admin authentication area.</p>
+        <form id="adminLoginForm">
+          <div class="field"><label>Admin Email</label><input id="adminEmail" type="email" required></div>
+          <div class="field"><label>Password</label><input id="adminPassword" type="password" required></div>
+          <button class="btn btn-accent" type="submit">Login Management</button>
+          <div id="adminAuthMsg" class="notice hidden"></div>
+        </form>
+      </article>
     </section>
 
-    <section class="app-view" id="viewDashboard" style="display:none;">
-      <div class="layout" style="min-height:auto;">
-        <aside class="sidebar" style="border-radius:14px;">
-          <a href="#" data-nav="dashboard" class="active">Dashboard</a>
-          <a href="#" data-nav="applications">Applications</a>
-          <a href="#" data-nav="results">Results</a>
-        </aside>
-        <div style="flex:1;">
-          <section class="card dashboard-panel" id="panelDashboard">
-            <h2>Route 3: User Dashboard</h2>
-            <p class="notice">Your quick overview appears here after login.</p>
-            <p id="dashboardGreeting"></p>
-          </section>
+    <section id="publicArea" class="split" style="margin-top:16px;">
+      <article class="card">
+        <h3>📌 Public Notice Board</h3>
+        <div id="publicNoticeList"><p class="notice">Loading notices...</p></div>
+      </article>
+      <article class="card">
+        <h3>🔎 Quick Result Checker</h3>
+        <p>Accessible for everyone via Student ID.</p>
+        <div class="field"><label>Student ID</label><input id="quickResultId" placeholder="GSU24001"></div>
+        <button id="quickCheckBtn" class="btn btn-primary">Check Result</button>
+        <div id="quickResultOutput" class="notice">No search yet.</div>
+      </article>
+    </section>
 
-          <section class="card dashboard-panel" id="panelApplications" style="display:none;">
-            <h2>Route 4: Multi-step Scholarship Form</h2>
-            <p class="notice">Form is accessible only after login from Dashboard.</p>
-
-            <div id="step1" class="form-step">
-              <h3>Step 1: Personal Details</h3>
-              <div class="grid">
-                <div class="field"><label>Full Name</label><input id="fullName" required /></div>
-                <div class="field"><label>Phone</label><input id="phone" required /></div>
-              </div>
-              <div class="actions"><button id="toStep2Btn">Continue to Step 2</button></div>
-              <p id="step1Msg" class="notice"></p>
-            </div>
-
-            <div id="step2" class="form-step" style="display:none;opacity:.6;pointer-events:none;">
-              <h3>Step 2: Academic Details</h3>
-              <div class="grid">
-                <div class="field"><label>School</label><input id="schoolName" /></div>
-                <div class="field"><label>Class</label><input id="className" /></div>
-              </div>
-              <div class="actions"><button id="submitFormBtn">Submit Application</button></div>
-              <p id="step2Msg" class="notice"></p>
-            </div>
-
-            <div class="actions">
-              <button class="secondary" id="prevBtn" style="display:none;">Previous</button>
-              <button id="nextBtn">Next</button>
-              <button id="submitFormBtn" style="display:none;" disabled>Submit Application</button>
-            </div>
-            <p id="stepMsg" class="notice"></p>
-          </section>
-
-          <section class="card dashboard-panel" id="panelResults" style="display:none;">
-            <h2>Results</h2>
-            <p class="notice">Your scholarship and class results will be shown here.</p>
-          </section>
-        </div>
+    <section id="studentDashboard" class="hidden">
+      <article class="card">
+        <h2>Student Dashboard</h2>
+        <p id="studentDetails"></p>
+      </article>
+      <div class="split" style="margin-top:14px;">
+        <article class="card">
+          <h3>Application Status</h3>
+          <p id="applicationStatusText">Loading...</p>
+          <p id="admitMeta">Awaiting verification.</p>
+          <button id="downloadAdmitBtn" class="btn btn-secondary" disabled>Download Admit Card</button>
+        </article>
+        <article class="card">
+          <h3>Academic Hub</h3>
+          <div id="resultsBox" class="notice">Loading results...</div>
+          <div id="classesBox" class="notice">Loading live classes...</div>
+        </article>
       </div>
-    </main>
-  </div>
-  <script src="/student.js"></script> 
+    </section>
+
+    <section id="adminDashboard" class="hidden">
+      <article class="card">
+        <h2>Management Dashboard</h2>
+        <div class="metrics" id="adminMetrics"></div>
+      </article>
+      <div class="split" style="margin-top:14px;">
+        <article class="card">
+          <h3>Assign Roll Number + Center Code</h3>
+          <div class="field"><label>Student ID</label><input id="assignStudentId" placeholder="GSU24001"></div>
+          <div class="field"><label>Roll Number</label><input id="assignRoll" placeholder="ROLL-2026-001"></div>
+          <div class="field"><label>Center Code</label><input id="assignCenter" placeholder="CTR-PAT-01"></div>
+          <button class="btn btn-primary" id="assignCenterRollBtn">Assign + Save</button>
+          <div id="assignMsg" class="notice hidden"></div>
+        </article>
+        <article class="card">
+          <h3>Bulk Excel Upload (Results up to 60,000)</h3>
+          <p>Columns: <strong>student_id, exam, score, status, date</strong></p>
+          <div class="field"><input id="resultFile" type="file" accept=".csv,.xlsx,.xls"></div>
+          <button id="processResultBtn" class="btn btn-accent">Process and Upsert</button>
+          <div id="uploadMsg" class="notice">No file processed yet.</div>
+        </article>
+      </div>
+      <article class="card" style="margin-top:14px;">
+        <h3>Student Snapshot (Latest 40)</h3>
+        <table>
+          <thead><tr><th>Student ID</th><th>Name</th><th>Status</th><th>Roll</th><th>Center</th></tr></thead>
+          <tbody id="studentTable"></tbody>
+        </table>
+      </article>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <script>
+    const SUPABASE_URL = window.SUPABASE_URL || '';
+    const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || '';
+    const hasSupabaseConfig = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
+    const supabase = hasSupabaseConfig ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+    const SESSION_KEY = 'sangam_supabase_session';
+
+    const $ = (id) => document.getElementById(id);
+    const ui = {
+      logoutBtn: $('logoutBtn'),
+      entryGate: $('entryGate'),
+      studentDashboard: $('studentDashboard'),
+      adminDashboard: $('adminDashboard'),
+      configNotice: $('configNotice')
+    };
+
+    let mode = 'login';
+    let profileRealtime = null;
+
+    function showMsg(el, text, ok = true) {
+      el.classList.remove('hidden', 'ok', 'err');
+      el.classList.add(ok ? 'ok' : 'err');
+      el.textContent = text;
+    }
+
+    function setEntryMode(nextMode) {
+      mode = nextMode;
+      $('studentNameWrap').classList.toggle('hidden', mode !== 'register');
+      $('studentIdWrap').classList.toggle('hidden', mode !== 'register');
+      $('studentSubmitBtn').textContent = mode === 'register' ? 'Register Student' : 'Login Student';
+    }
+
+    async function getCurrentSession() {
+      if (!supabase) return null;
+      const local = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
+      if (local?.access_token && local?.refresh_token) {
+        await supabase.auth.setSession(local);
+      }
+      const { data } = await supabase.auth.getSession();
+      return data.session;
+    }
+
+    async function getCurrentProfile() {
+      const session = await getCurrentSession();
+      if (!session) return null;
+      const { data, error } = await supabase.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
+      if (error) throw error;
+      return data;
+    }
+
+    async function refreshPublicData() {
+      if (!supabase) return;
+      const { data: notices } = await supabase.from('notices').select('message').order('created_at', { ascending: false }).limit(8);
+      $('publicNoticeList').innerHTML = (notices?.length ? notices : [{ message: 'No notices available.' }])
+        .map(n => `<p class="notice">${n.message}</p>`).join('');
+    }
+
+    async function renderStudentDashboard(profile) {
+      $('studentDetails').innerHTML = `<span class="chip">Name: ${profile.full_name || 'N/A'}</span><span class="chip">Student ID: ${profile.student_id || 'N/A'}</span>`;
+      $('applicationStatusText').textContent = `Application Status: ${profile.application_status || 'Not Submitted'} | Verification: ${profile.verification_status || 'Pending'}`;
+      const isVerified = profile.verification_status === 'Verified';
+      $('admitMeta').textContent = isVerified ? `Roll: ${profile.roll_number || '-'} | Center: ${profile.center_code || '-'}` : 'Admit card available after verification.';
+      $('downloadAdmitBtn').disabled = !isVerified;
+
+      const { data: results } = await supabase.from('results').select('exam, score, status, date').eq('student_id', profile.student_id).order('date', { ascending: false }).limit(8);
+      $('resultsBox').innerHTML = (results?.length ? results : [{ exam: 'N/A', score: '-', status: 'No result', date: '-' }])
+        .map(r => `${r.date || '-'} | ${r.exam} | Score: ${r.score} | ${r.status}`).join('<br>');
+
+      const { data: classes } = await supabase.from('classes').select('title, live_url, is_live').eq('is_live', true).limit(4);
+      $('classesBox').innerHTML = classes?.length
+        ? classes.map(c => `<a href="${c.live_url}" target="_blank">${c.title}</a>`).join('<br>')
+        : 'No active live class right now.';
+    }
+
+    async function renderAdminDashboard() {
+      const { count: total } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'student');
+      const { count: pending } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'student').neq('verification_status', 'Verified');
+      const { count: verified } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'student').eq('verification_status', 'Verified');
+      $('adminMetrics').innerHTML = [
+        ['Total Students', total || 0],
+        ['Pending', pending || 0],
+        ['Verified', verified || 0]
+      ].map(([k, v]) => `<div class="metric"><span>${k}</span><strong>${v}</strong></div>`).join('');
+
+      const { data: rows } = await supabase.from('profiles').select('student_id, full_name, verification_status, roll_number, center_code').eq('role', 'student').order('updated_at', { ascending: false }).limit(40);
+      $('studentTable').innerHTML = (rows || []).map(r => `<tr><td>${r.student_id || '-'}</td><td>${r.full_name || '-'}</td><td>${r.verification_status || '-'}</td><td>${r.roll_number || '-'}</td><td>${r.center_code || '-'}</td></tr>`).join('');
+    }
+
+    async function renderApp() {
+      if (!supabase) {
+        ui.configNotice.classList.remove('hidden');
+        return;
+      }
+      ui.configNotice.classList.add('hidden');
+      await refreshPublicData();
+      const profile = await getCurrentProfile();
+      ui.logoutBtn.classList.toggle('hidden', !profile);
+      ui.entryGate.classList.toggle('hidden', Boolean(profile));
+      ui.studentDashboard.classList.add('hidden');
+      ui.adminDashboard.classList.add('hidden');
+      if (!profile) return;
+
+      if (profile.role === 'admin') {
+        ui.adminDashboard.classList.remove('hidden');
+        await renderAdminDashboard();
+      } else {
+        ui.studentDashboard.classList.remove('hidden');
+        await renderStudentDashboard(profile);
+      }
+    }
+
+    async function handleStudentAuth(e) {
+      e.preventDefault();
+      if (!supabase) return;
+      const email = $('studentEmail').value.trim().toLowerCase();
+      const password = $('studentPassword').value;
+      const msgEl = $('studentAuthMsg');
+
+      if (mode === 'register') {
+        const fullName = $('studentName').value.trim();
+        const studentId = $('studentId').value.trim().toUpperCase();
+        if (!fullName || !studentId) return showMsg(msgEl, 'Name and Student ID are required.', false);
+
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({ email, password });
+        if (signUpError) return showMsg(msgEl, signUpError.message, false);
+
+        const uid = signUpData.user?.id;
+        if (uid) {
+          const { error: profileError } = await supabase.from('profiles').upsert({
+            id: uid,
+            role: 'student',
+            full_name: fullName,
+            student_id: studentId,
+            email,
+            application_status: 'Submitted',
+            verification_status: 'Pending'
+          });
+          if (profileError) return showMsg(msgEl, profileError.message, false);
+        }
+        showMsg(msgEl, 'Registration successful. Please verify email if required, then login.');
+        return;
+      }
+
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) return showMsg(msgEl, error.message, false);
+      localStorage.setItem(SESSION_KEY, JSON.stringify(data.session));
+      showMsg(msgEl, 'Login successful.');
+      await renderApp();
+    }
+
+    async function handleAdminAuth(e) {
+      e.preventDefault();
+      if (!supabase) return;
+      const email = $('adminEmail').value.trim().toLowerCase();
+      const password = $('adminPassword').value;
+      const msgEl = $('adminAuthMsg');
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) return showMsg(msgEl, error.message, false);
+      const profile = await supabase.from('profiles').select('role').eq('id', data.user.id).maybeSingle();
+      if (profile.error || profile.data?.role !== 'admin') {
+        await supabase.auth.signOut();
+        localStorage.removeItem(SESSION_KEY);
+        return showMsg(msgEl, 'This account is not authorized as management admin.', false);
+      }
+      localStorage.setItem(SESSION_KEY, JSON.stringify(data.session));
+      showMsg(msgEl, 'Management login successful.');
+      await renderApp();
+    }
+
+    async function handleLogout() {
+      if (supabase) await supabase.auth.signOut();
+      localStorage.removeItem(SESSION_KEY);
+      location.hash = '';
+      await renderApp();
+    }
+
+    async function quickResultCheck() {
+      if (!supabase) return;
+      const sid = $('quickResultId').value.trim().toUpperCase();
+      const { data } = await supabase.from('results').select('exam, score, status, date').eq('student_id', sid).order('date', { ascending: false }).limit(1).maybeSingle();
+      $('quickResultOutput').textContent = data ? `Latest: ${data.exam} | ${data.score} | ${data.status} (${data.date})` : 'No result found for this Student ID.';
+    }
+
+    async function assignRollCenter() {
+      const sid = $('assignStudentId').value.trim().toUpperCase();
+      const roll = $('assignRoll').value.trim();
+      const center = $('assignCenter').value.trim();
+      const out = $('assignMsg');
+      const { error } = await supabase.from('profiles').update({ roll_number: roll, center_code: center, verification_status: 'Verified' }).eq('student_id', sid).eq('role', 'student');
+      if (error) return showMsg(out, error.message, false);
+      showMsg(out, 'Assigned successfully. Student dashboard updates in real-time.');
+      await renderAdminDashboard();
+    }
+
+    function parseCsv(text) {
+      const rows = text.split(/\r?\n/).filter(Boolean).map(line => line.split(',').map(c => c.trim()));
+      const header = rows.shift() || [];
+      return rows.map(r => Object.fromEntries(header.map((h, i) => [h, r[i] || ''])));
+    }
+
+    async function processBulkUpload() {
+      const file = $('resultFile').files[0];
+      const msg = $('uploadMsg');
+      if (!file) return showMsg(msg, 'Please choose a file first.', false);
+
+      let records = [];
+      if ((file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) && window.XLSX) {
+        const buffer = await file.arrayBuffer();
+        const workbook = XLSX.read(buffer);
+        records = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: '' });
+      } else {
+        records = parseCsv(await file.text());
+      }
+
+      if (!records.length) return showMsg(msg, 'No valid records found.', false);
+      if (records.length > 60000) return showMsg(msg, 'File exceeds 60,000 row limit.', false);
+
+      const batchSize = 1000;
+      let upserted = 0;
+      for (let i = 0; i < records.length; i += batchSize) {
+        const slice = records.slice(i, i + batchSize).map((r) => ({
+          student_id: String(r.student_id || r.studentId || r.StudentID || '').trim().toUpperCase(),
+          exam: r.exam || r.Exam || 'Exam',
+          score: r.score || r.Score || '-',
+          status: r.status || r.Status || 'Processed',
+          date: r.date || r.Date || new Date().toISOString().slice(0, 10)
+        })).filter(r => r.student_id);
+
+        if (!slice.length) continue;
+        const { error } = await supabase.from('results').upsert(slice, { onConflict: 'student_id,exam,date' });
+        if (error) return showMsg(msg, `Stopped at row ${i + 1}: ${error.message}`, false);
+        upserted += slice.length;
+        msg.textContent = `Upserted ${Math.min(i + batchSize, records.length)} / ${records.length} rows...`;
+      }
+      showMsg(msg, `Upload complete. ${upserted} result rows upserted successfully.`);
+    }
+
+    function bindEvents() {
+      $('studentModeLogin').addEventListener('click', () => setEntryMode('login'));
+      $('studentModeRegister').addEventListener('click', () => setEntryMode('register'));
+      $('studentAuthForm').addEventListener('submit', handleStudentAuth);
+      $('adminLoginForm').addEventListener('submit', handleAdminAuth);
+      $('logoutBtn').addEventListener('click', handleLogout);
+      $('quickCheckBtn').addEventListener('click', quickResultCheck);
+      $('assignCenterRollBtn').addEventListener('click', assignRollCenter);
+      $('processResultBtn').addEventListener('click', processBulkUpload);
+      $('downloadAdmitBtn').addEventListener('click', async () => {
+        const profile = await getCurrentProfile();
+        if (!profile || profile.verification_status !== 'Verified') return;
+        const content = `Admit Card\nName: ${profile.full_name}\nStudent ID: ${profile.student_id}\nRoll: ${profile.roll_number}\nCenter: ${profile.center_code}`;
+        const blob = new Blob([content], { type: 'text/plain' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `${profile.student_id}-admit-card.txt`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+      });
+    }
+
+    async function setupRealtime() {
+      if (!supabase) return;
+      profileRealtime = supabase.channel('sangam-live-updates')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, async () => {
+          const profile = await getCurrentProfile();
+          if (profile?.role === 'admin') await renderAdminDashboard();
+          if (profile?.role === 'student') await renderStudentDashboard(profile);
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'classes' }, async () => {
+          const profile = await getCurrentProfile();
+          if (profile?.role === 'student') await renderStudentDashboard(profile);
+        })
+        .subscribe();
+    }
+
+    bindEvents();
+    setEntryMode('login');
+    renderApp().catch((e) => { console.error(e); });
+    setupRealtime().catch((e) => { console.error(e); });
+  </script>
 </body>
 </html>
